@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:fragment="head">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4e8ce4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121821",
+                        "slate-card": "rgba(38, 51, 69, 0.5)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(38, 51, 69, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card {
+            background: rgba(30, 38, 50, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3846;
+            border-radius: 10px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:fragment="sidebar(activePage)" class="w-64 glass border-r border-slate-700/50 hidden lg:flex flex-col z-50">
+        <div class="p-6 flex items-center gap-3">
+            <div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                <span class="material-symbols-outlined">corporate_fare</span>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight text-white">HR Manager</h2>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a th:class="${activePage == 'dashboard' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/dashboard}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="font-medium text-sm">Dashboard</span>
+            </a>
+            <a th:class="${activePage == 'employees' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/employees}">
+                <span class="material-symbols-outlined">group</span>
+                <span class="font-medium text-sm">Nhân viên</span>
+            </a>
+            <a th:class="${activePage == 'departments' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all shadow-sm'" th:href="@{/departments}">
+                <span class="material-symbols-outlined">corporate_fare</span>
+                <span class="font-medium text-sm">Phòng ban</span>
+            </a>
+            <a th:class="${activePage == 'attendance' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/attendance}">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span class="font-medium text-sm">Chấm công</span>
+            </a>
+            <a th:class="${activePage == 'tasks' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/tasks}">
+                <span class="material-symbols-outlined">assignment</span>
+                <span class="font-medium text-sm">Nhiệm vụ</span>
+            </a>
+            <a th:class="${activePage == 'approvals' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/approvals}">
+                <span class="material-symbols-outlined">verified</span>
+                <span class="font-medium text-sm">Duyệt đơn</span>
+            </a>
+            <a th:class="${activePage == 'notifications' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/notifications}">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="font-medium text-sm">Thông báo</span>
+            </a>
+
+            <div class="pt-4 pb-2 px-4">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Hệ thống</p>
+            </div>
+            <a th:class="${activePage == 'system-logs' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/system-logs}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="font-medium text-sm">Nhật ký hệ thống</span>
+            </a>
+            <a th:class="${activePage == 'settings' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'} + ' flex items-center gap-3 px-4 py-3 rounded-xl transition-all'" th:href="@{/settings}">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-medium text-sm">Cài đặt</span>
+            </a>
+        </nav>
+        <div class="p-6 mt-auto">
+            <div class="glass-card p-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden shrink-0">
+                        <img th:if="${currentUser != null and currentUser.avatarUrl != null}" th:src="${currentUser.avatarUrl}" class="w-full h-full object-cover" alt="Avatar"/>
+                        <span th:if="${currentUser != null and currentUser.avatarUrl == null}" class="text-sm font-bold text-primary" th:text="${#strings.substring(currentUser.fullName,0,1)}">A</span>
+                        <span th:if="${currentUser == null}" class="text-sm font-bold text-primary">?</span>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs font-bold truncate text-white" th:text="${currentUser != null ? currentUser.fullName : 'Hệ thống'}">Admin User</p>
+                        <p class="text-[10px] text-slate-500 truncate" th:text="${currentUser != null ? currentUser.email : 'guest@hrpro.com'}">admin@hrpro.com</p>
+                    </div>
+                    <button onclick="logout()" class="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Đăng xuất">
+                        <span class="material-symbols-outlined text-xl">logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                function logout() {
+                    document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    window.location.href = '/login';
+                }
+            </script>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative">
+        <!-- Header -->
+        <header th:fragment="header" class="sticky top-0 z-40 glass border-b border-slate-700/50 px-8 py-4 flex items-center justify-between">
+            <div class="flex-1 max-w-xl">
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
+                    <input class="w-full bg-slate-800/50 border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-primary focus:border-primary text-slate-100 placeholder-slate-500" placeholder="Tìm kiếm nhanh nhân viên, tác vụ..." type="text"/>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <button class="relative text-slate-400 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-2xl">notifications</span>
+                    <span class="absolute top-0 right-0 size-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+                </button>
+                <div class="flex items-center gap-3 pl-6 border-l border-slate-700/50">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-white tracking-tight" th:text="${currentUser != null ? currentUser.fullName : 'Khách'}">Quản trị viên</p>
+                        <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider" th:text="${currentUser != null ? currentUser.role : 'GUEST'}">hr@managerpro.vn</p>
+                    </div>
+                    <div class="size-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/10 ring-2 ring-slate-800">
+                        <img th:if="${currentUser != null and currentUser.avatarUrl != null}" th:src="${currentUser.avatarUrl}" class="w-full h-full object-cover" alt="Avatar"/>
+                        <span th:if="${currentUser != null and currentUser.avatarUrl == null}" class="text-base font-black text-primary" th:text="${#strings.substring(currentUser.fullName,0,1)}">A</span>
+                        <img th:if="${currentUser == null}" alt="Avatar" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=Guest&background=1e293b&color=fff"/>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div th:replace="${content}"></div>
+
+        <!-- Footer -->
+        <footer th:fragment="footer" class="p-8 border-t border-slate-700/50 text-center mt-auto">
+            <p class="text-xs text-slate-500">© 2024 HR Manager Pro - Hệ thống quản trị nhân sự cao cấp</p>
+        </footer>
+    </main>
+</div>
+</body>
+</html>

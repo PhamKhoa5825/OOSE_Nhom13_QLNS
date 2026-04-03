@@ -1,0 +1,37 @@
+@startuml
+title Activity: Đăng ký tài khoản mới
+start
+:Người dùng mở trang /register;
+:Nhập email, username, password;
+:Nhấn **Đăng ký**;
+:POST /api/auth/register;
+:AuthService.register(request);
+
+if (Username đã tồn tại?) then (Có)
+  :Throw DuplicateException;
+  :Trả về **409 Conflict**;
+  stop
+else (Không)
+endif
+
+if (Email đã tồn tại?) then (Có)
+  :Throw DuplicateException;
+  :Trả về **409 Conflict**;
+  stop
+else (Không)
+endif
+
+:BCryptPasswordEncoder.encode(password);
+:Tạo User entity
+(role=EMPLOYEE, status=INACTIVE);
+:userRepository.save(user);
+:JwtService.generateToken();
+:Trả AuthResponse {token, userId};
+:Redirect → /waiting-approval;
+note right
+  User mới status = INACTIVE
+  Chờ Admin duyệt (approve)
+  để gán phòng ban + kích hoạt
+end note
+stop
+@enduml

@@ -1,0 +1,43 @@
+@startuml
+class HomeViewController {
+  -employeeService: EmployeeService
+  -securityService: SecurityService
+  +profile(id: Long, model: Model): String
+}
+
+class EmployeeService {
+  +getById(id: Long): Employee
+  +getEmployeeDetail(id: Long): EmployeeDetailDTO
+}
+
+class SecurityService {
+  +isAdmin(): boolean
+  +getCurrentUserId(): Long
+}
+
+class EmployeeDetailDTO {
+  -id: Long
+  -fullName: String
+  -email: String
+  -phone: String
+  -address: String
+  -position: String
+  -departmentName: String
+  -managerName: String
+  -joinDate: LocalDate
+}
+
+class Employee {
+  -id: Long
+  -fullName: String
+  -email: String
+  -phone: String
+  -address: String
+  -departmentId: Long
+}
+
+HomeViewController o-- EmployeeService
+HomeViewController o-- SecurityService
+EmployeeService ..> EmployeeDetailDTO : "Tạo từ dữ liệu"
+EmployeeService ..> Employee : "Lấy từ Repository"
+@enduml

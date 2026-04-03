@@ -1,0 +1,58 @@
+@startuml
+title Sequence: Xem Dashboard theo Role
+actor "User" as U
+participant "Browser" as UI
+participant "HomeViewController" as Ctrl
+participant "SecurityService" as Sec
+participant "DashboardServiceImpl" as Svc
+participant "UserRepository" as UserRepo
+participant "EmployeeRepository" as EmpRepo
+participant "AttendanceRepository" as AttRepo
+participant "TaskRepository" as TaskRepo
+participant "RequestRepository" as ReqRepo
+database "MySQL" as DB
+
+U -> UI : Truy cập /dashboard
+UI -> Ctrl : GET /dashboard + Cookie: jwt=...
+activate Ctrl
+
+Ctrl -> Sec : getCurrentUserId()
+Sec --> Ctrl : userId
+
+Ctrl -> Svc : getDashboardData(userId)
+activate Svc
+
+Svc -> UserRepo : findById(userId)
+UserRepo -> DB : SELECT * FROM users
+DB --> UserRepo : User {role, employeeId}
+
+alt role == ADMIN
+    Svc -> EmpRepo : countByStatus(ACTIVE)
+    Svc -> AttRepo : findByDate(today)
+    Svc -> TaskRepo : findAll()
+    Svc -> ReqRepo : findByStatus(PENDING)
+    note right: Thống kê TOÀN CÔNG TY
+else role == MANAGER
+    Svc -> Svc : deptRepo.findByManagerId()\n→ lấy deptId
+    Svc -> EmpRepo : findByDepartmentId(deptId)
+    Svc -> AttRepo : findByDateAndDeptId(today, deptId)
+    Svc -> TaskRepo : findByDepartmentId(deptId)
+    Svc -> ReqRepo : findByDeptIdAndStatus(deptId, PENDING)
+    note right: Thống kê PHÒNG BAN
+else role == EMPLOYEE
+    Svc -> Svc : Lấy empId từ user.employeeId
+    Svc -> AttRepo : findByEmployeeIdAndDate(empId, today)
+    Svc -> TaskRepo : findByAssignedToId(empId)
+    Svc -> ReqRepo : findByEmployeeId(empId)
+    note right: Thống kê CÁ NHÂN
+end
+
+Svc -> Svc : Tổng hợp DashboardDataDTO\n{stats, recentEmployees,\ntodayAttendance, pendingRequests,\nkanbanTasks, notifications}
+Svc --> Ctrl : DashboardDataDTO
+deactivate Svc
+
+Ctrl -> Ctrl : model.addAttribute("dashboard", dto)
+Ctrl --> UI : return "dashboard" (Thymeleaf)
+deactivate Ctrl
+UI --> U : Render dashboard.html\nvới dữ liệu đúng role
+@enduml

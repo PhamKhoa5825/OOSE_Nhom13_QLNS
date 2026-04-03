@@ -1,0 +1,46 @@
+@startuml
+actor "Người dùng" as User
+boundary "Giao diện (login.html)" as UI
+control "AuthController" as Controller
+control "AuthService" as Service
+entity "UserRepository" as Repo
+database "MySQL" as DB
+
+User -> UI : Nhập Username/Password & Nhấn Login
+UI -> Controller : POST /api/auth/login (JSON)
+activate Controller
+
+Controller -> Service : authenticate(request)
+activate Service
+
+Service -> Repo : findByUsername(username)
+activate Repo
+Repo -> DB : SELECT * FROM users WHERE username = ?
+DB --> Repo : Dữ liệu User
+Repo --> Service : User Entity
+deactivate Repo
+
+Service -> Service : BCrypt.matches(password, passwordHash)
+alt Mật khẩu không khớp
+    Service --> Controller : Throw AuthenticationException
+    Controller --> UI : 401 Unauthorized (Error Message)
+    UI --> User : Hiển thị "Sai mật khẩu"
+else Mật khẩu khớp
+    Service -> Service : Check account status
+    alt Tài khoản bị khóa
+        Service --> Controller : Throw AccountLockedException
+        Controller --> UI : 403 Forbidden (Error Message)
+        UI --> User : Hiển thị "Tài khoản bị khóa"
+    else Tài khoản hợp lệ
+        Service -> Service : generateToken(user)
+        Service --> Controller : AuthResponse (JWT Token)
+        deactivate Service
+        
+        Controller --> UI : 200 OK (JWT Token)
+        deactivate Controller
+        
+        UI -> UI : Lưu JWT vào Browser Cookie
+        UI -> User : Chuyển hướng tới /dashboard
+    end
+end
+@enduml

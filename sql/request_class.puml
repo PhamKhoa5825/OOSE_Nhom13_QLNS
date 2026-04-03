@@ -1,0 +1,49 @@
+@startuml
+class RequestController {
+  -requestService: RequestService
+  +createRequest(empId: Long, req: CreateRequestRequest): ResponseEntity
+}
+
+class RequestService {
+  -requestRepository: RequestRepository
+  -employeeRepository: EmployeeRepository
+  +createRequest(empId: Long, request: CreateRequestRequest): RequestDTO
+}
+
+class CreateRequestRequest {
+  -title: String
+  -description: String
+  -fileUrl: String
+  -fileName: String
+  +getTitle(): String
+  +setTitle(title: String)
+}
+
+class RequestDTO {
+  -id: Long
+  -title: String
+  -description: String
+  -status: String
+  -createdAt: LocalDateTime
+}
+
+class Request {
+  -id: Long
+  -title: String
+  -description: String
+  -status: RequestStatus
+  -employee: Employee
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+RequestController o-- RequestService
+RequestService ..> CreateRequestRequest : "Nhận dữ liệu từ"
+RequestService ..> RequestDTO : "Trả về dữ liệu"
+RequestService ..> Request : "Tạo và Lưu"
+Request o-- RequestStatus
+@enduml

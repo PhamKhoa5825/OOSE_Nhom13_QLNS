@@ -1,0 +1,52 @@
+@startuml
+title Sequence: Duyệt nhân viên mới (Admin)
+actor "Admin" as Admin
+participant "Browser\n(employees.html)" as UI
+participant "EmployeeController" as Ctrl
+participant "SecurityService" as Sec
+participant "EmployeeServiceImpl" as Svc
+participant "EmployeeRepository" as EmpRepo
+participant "DepartmentRepository" as DeptRepo
+participant "UserRepository" as UserRepo
+database "MySQL" as DB
+
+Admin -> UI : Lọc NV status = INACTIVE
+Admin -> UI : Nhấn **"Duyệt"** trên NV mới
+Admin -> UI : Chọn phòng ban & vai trò
+UI -> Ctrl : PUT /api/employees/{id}/approve\n?deptId=X&role=Y
+activate Ctrl
+
+Ctrl -> Sec : isAdmin()
+Sec --> Ctrl : true
+
+Ctrl -> Svc : approveEmployee(id, deptId, role)
+activate Svc
+
+Svc -> EmpRepo : findById(id)
+EmpRepo -> DB : SELECT * FROM employees
+DB --> EmpRepo : Employee
+EmpRepo --> Svc : Employee entity
+
+Svc -> DeptRepo : findById(deptId)
+DeptRepo -> DB : SELECT * FROM departments
+DB --> DeptRepo : Department
+DeptRepo --> Svc : Department entity
+
+Svc -> Svc : employee.setDepartment(dept)\nemployee.setStatus(ACTIVE)
+Svc -> EmpRepo : save(employee)
+EmpRepo -> DB : UPDATE employees\nSET department_id=?, status='ACTIVE'
+
+Svc -> UserRepo : findByEmail(emp.email)
+UserRepo -> DB : SELECT * FROM users\nWHERE email = ?
+DB --> UserRepo : User entity
+Svc -> Svc : user.setStatus(ACTIVE)\nuser.setRole(role)
+Svc -> UserRepo : save(user)
+UserRepo -> DB : UPDATE users\nSET status='ACTIVE', role=?
+
+Svc --> Ctrl : void (success)
+deactivate Svc
+Ctrl --> UI : 200 OK
+deactivate Ctrl
+UI --> Admin : "Đã duyệt nhân viên thành công"
+UI -> UI : Tải lại danh sách
+@enduml

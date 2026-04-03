@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+actor "Quản lý / Admin" as Manager
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Giao nhiệm vụ" as UC_AssignTask
+}
+
+Manager --> UC_AssignTask
+@enduml

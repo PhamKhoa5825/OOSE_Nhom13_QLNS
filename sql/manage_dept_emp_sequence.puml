@@ -1,0 +1,21 @@
+@startuml
+actor "Trưởng phòng" as Manager
+participant "Browser (employees.html)" as Frontend
+participant "EmployeeViewController" as Controller
+participant "SecurityService" as Security
+participant "EmployeeService" as Service
+database "Database" as DB
+
+Manager -> Controller : GET /employees
+Controller -> Security : isAdmin()
+Security --> Controller : false
+Controller -> Security : getManagerDepartmentId()
+Security --> Controller : deptId
+Controller -> Service : getByDepartment(deptId, pageable)
+Service -> DB : Lấy nhân viên thuộc phòng ban
+DB --> Service : Danh sách Employee entities
+Service --> Controller : Page<EmployeeDTO>
+Controller -> Controller : Model.addAttribute("employees", ...)
+Controller --> Frontend : Trả về View
+Frontend -> Manager : Hiển thị danh sách nhân viên phòng ban
+@enduml

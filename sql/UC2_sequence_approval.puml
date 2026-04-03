@@ -1,0 +1,242 @@
+@startuml UC2_Sequence_Approval
+!theme plain
+skinparam participant {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam sequenceArrowColor #2E7D32
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+}
+
+title Sequence Diagram — UC2: Phê duyệt đơn nghỉ phép năm
+
+actor "Quản lý" as Mgr
+boundary "Giao diện\n(request-management.html)" as UI
+control "RequestController" as Ctrl
+control "SecurityService" as Sec
+control "RequestServiceImpl" as Svc
+entity "RequestRepository" as ReqRepo
+entity "EmployeeRepository" as EmpRepo
+entity "AttendanceRepository" as AttRepo
+control "RequestMapper" as Mapper
+control "ApplicationEvent\nPublisher" as Pub
+
+database "MySQL" as DB
+
+== Bước 1: Quản lý xem danh sách đơn chờ duyệt ==
+
+Mgr -> UI : Chọn **"Đơn chờ duyệt"**
+activate UI
+note right of UI #FFF9C4
+  Giao diện gửi request kèm
+  departmentId của quản lý
+  (lấy từ thông tin đăng nhập).
+end note
+
+UI -> Ctrl : GET /api/requests/department/{deptId}/pending\nHeader: Authorization (JWT)
+activate Ctrl
+
+'-- Kiểm tra quyền quản lý phòng ban --
+Ctrl -> Sec : validateManagerDepartment(deptId)
+activate Sec
+note right of Sec #FFF9C4
+  Kiểm tra user đang đăng nhập
+  có role MANAGER và thuộc
+  đúng phòng ban deptId hay không.
+  Nếu sai → **AccessDeniedException**.
+end note
+Sec --> Ctrl : OK ✓
+deactivate Sec
+
+Ctrl -> Svc : getPendingByDepartment(deptId)
+activate Svc
+
+Svc -> ReqRepo : findByDepartmentIdAndStatus\n(deptId, "PENDING")
+activate ReqRepo
+ReqRepo -> DB : SELECT * FROM requests\nWHERE dept_id = ? AND status = 'PENDING'
+DB --> ReqRepo : List<Request>
+ReqRepo --> Svc : List<Request>
+deactivate ReqRepo
+
+'-- Chuyển đổi danh sách sang DTO --
+Svc -> Mapper : toDTO(each Request)
+activate Mapper
+Mapper --> Svc : List<RequestDTO>
+deactivate Mapper
+
+Svc --> Ctrl : List<RequestDTO>
+deactivate Svc
+
+Ctrl --> UI : 200 OK\nList<RequestDTO> (JSON)
+deactivate Ctrl
+
+UI --> Mgr : Hiển thị danh sách\nđơn chờ duyệt
+deactivate UI
+
+== Bước 2: Quản lý chọn đơn và phê duyệt/từ chối ==
+
+Mgr -> UI : Chọn đơn → Nhấn **"Duyệt"** hoặc **"Từ chối"**\n(nhập lý do nếu từ chối)
+activate UI
+
+UI -> Ctrl : PUT /api/requests/{id}/review/employee/{reviewerId}\n{approved: true/false, rejectionReason}\nHeader: Authorization (JWT)
+activate Ctrl
+
+note right of Ctrl #FFF9C4
+  **reviewerId** = employeeId
+  của quản lý đang đăng nhập.
+  **req body** chứa approved (boolean)
+  và rejectionReason (nếu từ chối).
+end note
+
+== Bước 3: Tìm đơn cần duyệt ==
+
+Ctrl -> Svc : reviewRequest(id, reviewerId, req)
+activate Svc
+
+Svc -> ReqRepo : findById(id)
+activate ReqRepo
+ReqRepo -> DB : SELECT * FROM requests\nWHERE id = ?
+DB --> ReqRepo : Optional<Request>
+ReqRepo --> Svc : Optional<Request>
+deactivate ReqRepo
+
+alt Đơn không tồn tại
+    Svc --> Ctrl : throw ResourceNotFoundException
+    Ctrl --> UI : 404 Not Found\n("Đơn không tồn tại")
+    UI --> Mgr : Hiển thị thông báo lỗi
+else Đơn tồn tại
+
+    note right of Svc #FFF9C4
+      Kiểm tra request.status == PENDING.
+      Nếu đơn đã được duyệt/từ chối
+      trước đó → **throw AttendanceException**
+      ("Đơn đã được xử lý").
+    end note
+
+    alt Đơn không ở trạng thái PENDING
+        Svc --> Ctrl : throw AttendanceException
+        Ctrl --> UI : 400 Bad Request\n("Đơn đã được xử lý")
+        UI --> Mgr : Hiển thị thông báo lỗi
+    else Đơn đang PENDING ✓
+
+        == Bước 4: Xác minh người duyệt ==
+
+        Svc -> EmpRepo : findById(reviewerId)
+        activate EmpRepo
+        EmpRepo -> DB : SELECT * FROM employees\nWHERE id = ?
+        DB --> EmpRepo : Optional<Employee>
+        EmpRepo --> Svc : Employee (reviewer)
+        deactivate EmpRepo
+
+        note right of Svc #FFF9C4
+          Lưu thông tin người duyệt:
+          **request.setReviewedBy(reviewer)**
+        end note
+
+        == Bước 5: Xử lý logic phê duyệt ==
+
+        alt approved == true (Duyệt đơn)
+            Svc -> Svc : request.setStatus("APPROVED")
+
+            note right of Svc #CCFFCC
+              **Xử lý nghiệp vụ theo loại đơn:**
+              switch(request.type)
+              → ANNUAL_LEAVE: processLeaveApproval()
+              → Trừ số ngày phép còn lại
+              → Cập nhật bảng attendance
+            end note
+
+            '-- Xử lý nghiệp vụ nghỉ phép --
+            Svc -> Svc : switch(type) → ANNUAL_LEAVE\n→ processLeaveApproval(request)
+
+            loop Mỗi RequestDetail trong request.details
+                note right of Svc #FFF9C4
+                  Duyệt từng ngày trong đơn nghỉ:
+                  tìm hoặc tạo bản ghi attendance
+                  cho ngày đó, đặt status = LEAVE_PAID.
+                end note
+                Svc -> AttRepo : findByEmployeeIdAndDate\n(empId, detail.date)
+                activate AttRepo
+                AttRepo -> DB : SELECT * FROM attendance\nWHERE employee_id = ? AND date = ?
+                DB --> AttRepo : Optional<Attendance>
+                AttRepo --> Svc : Optional<Attendance>
+                deactivate AttRepo
+
+                Svc -> AttRepo : save(Attendance{status = LEAVE_PAID})
+                activate AttRepo
+                AttRepo -> DB : INSERT/UPDATE attendance\nSET status = 'LEAVE_PAID'
+                DB --> AttRepo : saved_entity
+                AttRepo --> Svc : Attendance Entity
+                deactivate AttRepo
+            end
+
+            '-- Trừ ngày phép còn lại --
+            Svc -> EmpRepo : save(Employee{\nremainingLeaveDays -= totalDays})
+            activate EmpRepo
+            note right of EmpRepo #FFF9C4
+              Cập nhật số ngày phép còn lại:
+              **remainingLeaveDays = old - totalDays**
+            end note
+            EmpRepo -> DB : UPDATE employees\nSET remaining_leave_days = ?\nWHERE id = ?
+            DB --> EmpRepo : updated_entity
+            EmpRepo --> Svc : Employee Entity
+            deactivate EmpRepo
+
+        else approved == false (Từ chối đơn)
+            alt rejectionReason rỗng hoặc null
+                Svc --> Ctrl : throw BadRequestException
+                Ctrl --> UI : 400 Bad Request\n("Vui lòng nhập lý do từ chối")
+                UI --> Mgr : Hiển thị thông báo lỗi
+            else rejectionReason hợp lệ
+                Svc -> Svc : request.setStatus("REJECTED")
+                Svc -> Svc : request.setRejectionReason\n(req.rejectionReason)
+                note right of Svc #FFCCCC
+                  Đơn bị từ chối.
+                  Không trừ phép, không cập nhật
+                  attendance. Chỉ lưu lý do.
+                end note
+            end
+        end
+
+        == Bước 6: Lưu kết quả duyệt ==
+
+        Svc -> ReqRepo : save(request)
+        activate ReqRepo
+        ReqRepo -> DB : UPDATE requests\nSET status = ?, reviewed_by = ?,\nrejection_reason = ?, updated_at = NOW()
+        DB --> ReqRepo : Request (đã cập nhật)
+        ReqRepo --> Svc : Request Entity
+        deactivate ReqRepo
+
+        == Bước 7: Ghi nhật ký hệ thống ==
+
+        Svc -> Pub : publishEvent(SystemActivityEvent)
+        activate Pub
+        note right of Pub #FFF9C4
+          Ghi nhật ký hoạt động vào
+          bảng **system_logs**.
+          Có thể gửi thông báo đến
+          nhân viên qua **WebSocket/FCM**.
+        end note
+        Pub --> Svc
+        deactivate Pub
+
+        == Bước 8: Chuyển đổi dữ liệu trả về ==
+
+        Svc -> Mapper : toDTO(request)
+        activate Mapper
+        Mapper --> Svc : RequestDTO
+        deactivate Mapper
+
+        Svc --> Ctrl : RequestDTO
+        deactivate Svc
+
+        Ctrl --> UI : 200 OK\nRequestDTO (JSON)
+        deactivate Ctrl
+
+        UI --> Mgr : Hiển thị kết quả\nphê duyệt thành công
+    end
+end
+deactivate UI
+@enduml

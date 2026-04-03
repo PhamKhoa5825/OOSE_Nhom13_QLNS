@@ -1,0 +1,23 @@
+@startuml
+start
+:Người dùng nhập thông tin đăng ký;
+:Kiểm tra mật khẩu xác nhận;
+if (Mật khẩu khớp?) then (Có)
+  :Gửi yêu cầu POST /api/auth/register;
+  :Backend kiểm tra dữ liệu (Email hợp lệ, v.v.);
+  if (Dữ liệu hợp lệ?) then (Có)
+    :Lưu người dùng vào Database;
+    :Trả về kết quả Thành công;
+    :Hiển thị thông báo thành công;
+    :Chuyển hướng sang trang Đăng nhập;
+    stop
+  else (Không)
+    :Trả về lỗi từ Server;
+    :Hiển thị thông báo lỗi;
+    stop
+  endif
+else (Không)
+  :Hiển thị lỗi "Mật khẩu không khớp";
+  stop
+endif
+@enduml

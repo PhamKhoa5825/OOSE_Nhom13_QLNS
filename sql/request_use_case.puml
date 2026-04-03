@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor "Nhân viên" as Employee
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Gửi đơn yêu cầu" as UC_SubmitRequest
+  usecase "Gửi đơn nghỉ phép" as UC_Leave
+  usecase "Gửi đơn làm thêm giờ" as UC_OT
+}
+
+Employee --> UC_SubmitRequest
+UC_SubmitRequest <|-- UC_Leave
+UC_SubmitRequest <|-- UC_OT
+@enduml

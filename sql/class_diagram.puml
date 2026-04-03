@@ -1,0 +1,83 @@
+@startuml
+package "com.example.qlns.Entity" {
+    class User {
+        - Long id
+        - String username
+        - String passwordHash
+        - Role role
+        - UserStatus status
+        - Long employeeId
+    }
+    class Employee {
+        - Long id
+        - String fullName
+        - String email
+        - String position
+        - EmployeeStatus status
+        - Department department
+    }
+    class Department {
+        - Long id
+        - String name
+        - List<Employee> employees
+    }
+    class Task {
+        - Long id
+        - String title
+        - TaskStatus status
+        - Employee assignedTo
+    }
+    class Attendance {
+        - Long id
+        - LocalDate date
+        - LocalTime checkIn
+        - AttendanceStatus status
+        - Employee employee
+    }
+    class Request {
+        - Long id
+        - String title
+        - RequestStatus status
+        - Employee employee
+    }
+
+    User "1" -- "0..1" Employee : mapps to
+    Employee "n" -- "1" Department : belongs to
+    Task "n" -- "1" Employee : assigned to
+    Attendance "n" -- "1" Employee : recorded for
+    Request "n" -- "1" Employee : submitted by
+}
+
+package "com.example.qlns.Service" {
+    interface EmployeeService
+    interface AttendanceService
+    interface TaskService
+    interface RequestService
+    interface DashboardService
+    interface AuthService
+}
+
+package "com.example.qlns.Controller" {
+    class AuthController
+    class EmployeeController
+    class TaskController
+    class AttendanceController
+    class RequestController
+    class DashboardController
+    class HomeViewController
+}
+
+AuthController --> AuthService
+EmployeeController --> EmployeeService
+TaskController --> TaskService
+AttendanceController --> AttendanceService
+RequestController --> RequestService
+DashboardController --> DashboardService
+HomeViewController --> DashboardService
+
+EmployeeService ..> Employee : manages
+AttendanceService ..> Attendance : records
+TaskService ..> Task : handles
+RequestService ..> Request : processes
+
+@enduml

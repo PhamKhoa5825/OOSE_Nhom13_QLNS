@@ -1,0 +1,18 @@
+@startuml
+actor "Nhân viên" as Employee
+participant "Browser (tasks.html)" as Frontend
+participant "TaskController" as APIController
+participant "TaskService" as Service
+database "Database" as DB
+
+Employee -> Frontend : Nhấn "Chấp nhận" hoặc "Hoàn thành"
+Frontend -> APIController : PUT /api/tasks/{id}/status (hoặc /accept)
+APIController -> Service : updateStatus(id, status, note, updatedById)
+Service -> DB : Cập nhật trạng thái Task
+DB --> Service : OK
+Service -> DB : Lưu lịch sử TaskUpdate
+DB --> Service : OK
+Service --> APIController : Trả về TaskDTO mới
+APIController --> Frontend : HTTP 200 OK
+Frontend -> Employee : Hiển thị "Cập nhật thành công"
+@enduml

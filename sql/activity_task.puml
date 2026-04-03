@@ -1,0 +1,54 @@
+@startuml
+title Activity: Giao và nhận nhiệm vụ (Task)
+start
+:Manager mở trang /tasks;
+:Nhấn **"Thêm nhiệm vụ mới"**;
+:Nhập title, description, priority,
+deadline, chọn nhân viên;
+:POST /api/tasks (CreateTaskRequest);
+
+:TaskServiceImpl.create();
+:empRepo.findById(assignedToId);
+
+if (Nhân viên tồn tại?) then (Không)
+  :Throw ResourceNotFoundException;
+  stop
+else (Có)
+endif
+
+:SecurityService.validateManagerDepartment();
+
+if (NV thuộc phòng ban Manager?) then (Không)
+  :Throw ForbiddenException;
+  stop
+else (Có)
+endif
+
+:Tạo Task (status = **PENDING**);
+:taskRepo.save() → taskMapper.toDTO();
+:Trả TaskDTO → **200 OK**;
+
+'|Nhân viên|
+:Mở /tasks → Thấy task cột "Chờ nhận";
+:Nhấn **"Nhận việc"**;
+:PUT /api/tasks/{id}/accept;
+:Kiểm tra: task giao đúng người?
+status == PENDING?;
+:Chuyển status → **ACCEPTED**;
+:saveHistory(TaskUpdate);
+
+fork
+  :Nhân viên cập nhật tiến độ;
+  :PUT /api/tasks/{id}/status {DONE};
+  :completedAt = now();
+  :saveHistory(TaskUpdate);
+  :status → **DONE**;
+fork again
+  :@Scheduled (8h sáng mỗi ngày);
+  :markOverdueTasks();
+  :Tìm task quá deadline;
+  :status → **OVERDUE**;
+end fork
+
+stop
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+start
+:Nhân viên mở trang "Yêu cầu của tôi";
+:Nhấn nút "Tạo đơn mới";
+:Nhập tiêu đề (Title) & mô tả (Description);
+:Chọn tệp đính kèm (nếu có);
+:Nhấn "Gửi yêu cầu";
+:Frontend kiểm tra dữ liệu bắt buộc;
+if (Dữ liệu hợp lệ?) then (Có)
+  :Gửi POST /api/requests/employee/{empId};
+  :Backend tạo đối tượng Request;
+  :Trạng thái mặc định = PENDING;
+  :Lưu vào Database;
+  :Trả về JSON RequestDTO;
+  :Hiển thị thông báo "Gửi thành công";
+  :Tải lại danh sách đơn;
+  stop
+else (Không)
+  :Hiển thị lỗi nhập liệu;
+  stop
+endif
+@enduml

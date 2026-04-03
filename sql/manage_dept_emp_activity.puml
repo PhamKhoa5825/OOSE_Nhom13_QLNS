@@ -1,0 +1,15 @@
+@startuml
+start
+:Trưởng phòng nhấn vào "Nhân viên";
+:Hệ thống kiểm tra vai trò người dùng;
+if (Là Admin?) then (Có)
+  :Lấy toàn bộ danh sách nhân viên;
+else (Không)
+  :Lấy ID phòng ban mà Manager quản lý;
+  :Lọc danh sách nhân viên theo ID phòng ban;
+endif
+:Truy vấn dữ liệu từ Database;
+:Trả về danh sách nhân viên (Phân trang);
+:Hiển thị trang employees.html;
+stop
+@enduml

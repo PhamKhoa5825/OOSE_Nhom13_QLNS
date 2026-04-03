@@ -1,0 +1,44 @@
+@startuml
+title Activity: Đăng nhập và xác thực JWT
+start
+:Người dùng mở trang /login;
+:Nhập username và password;
+:Nhấn nút **Đăng nhập**;
+:Browser gửi POST /api/auth/login;
+:AuthController nhận request;
+:AuthService.authenticate(request);
+:CustomUserDetailsService.loadUserByUsername();
+
+if (User tồn tại?) then (Không)
+  :Throw ResourceNotFoundException;
+  :Trả về **404 Not Found**;
+  stop
+else (Có)
+endif
+
+:BCrypt.matches(password, passwordHash);
+
+if (Mật khẩu khớp?) then (Không)
+  :Throw BadCredentialsException;
+  :Trả về **401 Unauthorized**;
+  stop
+else (Có)
+endif
+
+if (Account ACTIVE?) then (Không)
+  :Throw UnauthorizedException;
+  :Trả về **403 Forbidden**;
+  stop
+else (Có)
+endif
+
+:JwtService.generateToken(userDetails);
+note right
+  JWT: {username, role, userId, exp 24h}
+  Algorithm: HS256
+end note
+:Trả AuthResponse {token, userId, role};
+:Browser lưu JWT vào Cookie;
+:Redirect → /dashboard;
+stop
+@enduml

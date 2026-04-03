@@ -1,0 +1,56 @@
+@startuml
+class TaskController {
+  -taskService: TaskService
+  +acceptTask(id: Long, body: Map): ResponseEntity
+  +updateStatus(id: Long, req: UpdateTaskStatusRequest, updatedById: Long): ResponseEntity
+}
+
+class TaskService {
+  -taskRepository: TaskRepository
+  -taskUpdateRepository: TaskUpdateRepository
+  +acceptTask(id: Long, employeeId: Long): TaskDTO
+  +updateStatus(id: Long, newStatus: TaskStatus, note: String, updatedById: Long): TaskDTO
+}
+
+class UpdateTaskStatusRequest {
+  -status: String
+  -note: String
+  +getStatus(): String
+  +getNote(): String
+}
+
+class TaskDTO {
+  -id: Long
+  -title: String
+  -status: TaskStatus
+}
+
+class Task {
+  -id: Long
+  -status: TaskStatus
+}
+
+class TaskUpdate {
+  -id: Long
+  -taskId: Long
+  -status: TaskStatus
+  -note: String
+  -updatedBy: Long
+  -updatedAt: LocalDateTime
+}
+
+enum TaskStatus {
+  PENDING
+  ACCEPTED
+  DONE
+  OVERDUE
+}
+
+TaskController o-- TaskService
+TaskService ..> UpdateTaskStatusRequest : "Nhận dữ liệu"
+TaskService ..> TaskDTO : "Trả về"
+TaskService ..> Task : "Cập nhật"
+TaskService ..> TaskUpdate : "Tạo mới lịch sử"
+Task o-- TaskStatus
+TaskUpdate o-- TaskStatus
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+start
+:Người dùng truy cập trang Đăng nhập;
+:Nhập Username và Password;
+:Nhấn nút "Đăng nhập";
+
+if (Dữ liệu hợp lệ (không rỗng)?) then (Có)
+  :Gửi yêu cầu POST tới /api/auth/login;
+  :Hệ thống kiểm tra tài khoản;
+  
+  if (Tài khoản tồn tại?) then (Có)
+    if (Tài khoản bị khóa?) then (Có)
+      :Hiển thị lỗi "Tài khoản bị khóa";
+      stop
+    else (Không)
+      if (Mật khẩu chính xác?) then (Có)
+        :Tạo mã token JWT;
+        :Trả về mã JWT thành công;
+        :Lưu JWT vào Cookie;
+        :Chuyển hướng tới trang Dashboard;
+        stop
+      else (Không)
+        :Hiển thị lỗi "Sai mật khẩu";
+        stop
+      endif
+    endif
+  else (Không)
+    :Hiển thị lỗi "Tên đăng nhập không tồn tại";
+    stop
+  endif
+else (Không)
+  :Hiển thị cảnh báo "Vui lòng nhập đầy đủ thông tin";
+  stop
+endif
+
+@enduml

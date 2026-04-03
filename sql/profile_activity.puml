@@ -1,0 +1,16 @@
+@startuml
+start
+:Nhân viên nhấn vào "Xem hồ sơ";
+:Gửi yêu cầu GET /profile/{id};
+:Hệ thống lấy thông tin Employee từ Database;
+if (Hồ sơ tồn tại?) then (Có)
+  :Lấy thông tin chi tiết (EmployeeDetailDTO);
+  :Kiểm tra quyền hạn (Admin / Owner);
+  :Xác định các vùng hiển thị (Sửa hồ sơ, Đổi mật khẩu);
+  :Hiển thị trang profile.html;
+  stop
+else (Không)
+  :Chuyển hướng về trang danh sách nhân viên;
+  stop
+endif
+@enduml

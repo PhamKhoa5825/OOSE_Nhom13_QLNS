@@ -1,0 +1,155 @@
+@startuml
+
+left to right direction
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam defaultFontName "Segoe UI"
+
+' ── Giao diện tối giản ──────────────────────────
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #999999
+    BorderThickness 1
+    FontSize 11
+}
+
+skinparam package {
+    FontSize 12
+    FontStyle bold
+    BorderThickness 1.5
+}
+
+skinparam rectangle {
+    BorderColor #666666
+    BorderThickness 1.5
+    FontSize 13
+    FontStyle bold
+}
+
+skinparam arrow {
+    Color #666666
+    FontSize 10
+}
+
+skinparam note {
+    BackgroundColor #F5F5F5
+    BorderColor #CCCCCC
+    FontSize 10
+}
+
+' ── ACTORS ──────────────────────────────────────
+actor "Người dùng mới\n(Guest)" as Guest
+actor "Nhân viên\n(Employee)" as Employee
+actor "Trưởng phòng\n(Manager)" as Manager
+actor "Quản trị viên\n(Admin)" as Admin
+
+' ── KẾ THỪA ────────────────────────────────────
+Employee <|-- Manager
+Manager  <|-- Admin
+
+' ── HỆ THỐNG ───────────────────────────────────
+rectangle "Hệ thống Quản lý Nhân sự (HRMS)" {
+
+    package "Xác thực & Tài khoản" {
+        usecase "Đăng ký tài khoản (UC0)"       as UC0
+        usecase "Đăng nhập (UC1)"                as UC1
+        usecase "Đăng xuất (UC2)"                as UC2
+        usecase "Xem thông tin cá nhân (UC3)"    as UC3
+        usecase "Đổi mật khẩu (UC4)"            as UC4
+        usecase "Kiểm tra thông tin\nđăng nhập"  as UC_Check
+        usecase "Thông báo lỗi"                  as UC_Error
+    }
+
+    package "Chấm công" {
+        usecase "Chấm công\nCheck-in / Check-out (UC6)" as UC6
+        usecase "Xem lịch sử chấm công (UC7)"           as UC7
+    }
+
+    package "Đơn yêu cầu" {
+        usecase "Gửi đơn yêu cầu (UC8)"         as UC8
+        usecase "Theo dõi trạng thái đơn (UC9)"  as UC9
+        usecase "Gửi đơn làm thêm giờ (OT)"     as UC_OT
+        usecase "Gửi đơn nghỉ phép"              as UC_Leave
+    }
+
+    package "Thông báo & Chat" {
+        usecase "Xem thông báo (UC5)"            as UC5
+    }
+
+    package "Nhiệm vụ (Task)" {
+        usecase "Xem nhiệm vụ được giao (UC10)"          as UC10
+        usecase "Cập nhật trạng thái nhiệm vụ (UC11)"    as UC11
+    }
+
+    package "Quản lý phòng ban" {
+        usecase "Quản lý NV phòng ban (UC12)"    as UC12
+        usecase "Xem bảng công phòng ban (UC13)" as UC13
+        usecase "Phê duyệt đơn yêu cầu (UC14)"  as UC14
+        usecase "Giao nhiệm vụ (UC15)"           as UC15
+        usecase "Xem Dashboard phòng ban (UC16)"  as UC16
+        usecase "Từ chối đơn"                     as UC_Reject
+        usecase "Chấp nhận đơn"                   as UC_Accept
+    }
+
+    package "Quản trị hệ thống" {
+        usecase "Quản lý người dùng (UC17)"      as UC17
+        usecase "Quản lý phòng ban (UC18)"       as UC18
+        usecase "Xem bảng công toàn CTy (UC19)"  as UC19
+        usecase "Xem Dashboard hệ thống (UC20)"  as UC20
+        usecase "Khóa / Mở khóa tài khoản"       as UC_Lock
+        usecase "Duyệt người dùng mới"            as UC_Approve
+    }
+}
+
+' ── LIÊN KẾT ACTOR ─────────────────────────────
+Guest    --> UC0
+
+Employee --> UC1
+Employee --> UC2
+Employee --> UC3
+Employee --> UC4
+Employee --> UC6
+Employee --> UC7
+Employee --> UC8
+Employee --> UC9
+Employee --> UC5
+Employee --> UC10
+Employee --> UC11
+
+Manager  --> UC12
+Manager  --> UC13
+Manager  --> UC14
+Manager  --> UC15
+Manager  --> UC16
+
+Admin    --> UC17
+Admin    --> UC18
+Admin    --> UC19
+Admin    --> UC20
+
+' ── QUAN HỆ USE CASE ───────────────────────────
+UC1  ..> UC_Check  : <<include>>
+UC_Check ..> UC_Error : <<extend>>
+
+UC8 <|-- UC_OT
+UC8 <|-- UC_Leave
+
+UC14 ..> UC_Reject : <<include>>
+UC14 ..> UC_Accept : <<include>>
+
+UC17 <|-- UC_Lock
+UC17 <|-- UC_Approve
+
+' ── GHI CHÚ ────────────────────────────────────
+note as N1
+    **Phân quyền kế thừa:**
+    - Admin kế thừa Manager
+    - Manager kế thừa Employee
+    - Admin có toàn quyền
+    - Manager = Employee + quản lý PB
+end note
+
+N1 .. Admin
+
+@enduml

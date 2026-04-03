@@ -1,0 +1,164 @@
+@startuml
+' ============================================================
+' QLNS - USE CASE TỔNG QUAN
+' Hệ thống Quản Lý Nhân Sự (Employee Management System)
+' ============================================================
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+skinparam usecase {
+    BackgroundColor<<public>>   #F1EFE8
+    BorderColor<<public>>       #888780
+    BackgroundColor<<employee>> #E1F5EE
+    BorderColor<<employee>>     #0F6E56
+    BackgroundColor<<manager>>  #EEEDFE
+    BorderColor<<manager>>      #534AB7
+    BackgroundColor<<admin>>    #FAECE7
+    BorderColor<<admin>>        #993C1D
+}
+
+' ── ACTORS ──────────────────────────────────────────────────
+actor "Nhân viên\n(Employee)" as Employee
+actor "Trưởng phòng\n(Manager)" as Manager
+actor "Quản trị viên\n(Admin)" as Admin
+
+' Kế thừa quyền
+Employee <|-- Manager
+Manager <|-- Admin
+
+' ── HỆ THỐNG ───────────────────────────────────────────────
+rectangle "Hệ thống QLNS - Quản Lý Nhân Sự" {
+
+    ' ── NHÓM: XÁC THỰC (Public) ───────────────────────────
+    package "Xác thực & Bảo mật" {
+        usecase "Đăng ký tài khoản"         as UC_Register   <<public>>
+        usecase "Đăng nhập"                 as UC_Login      <<public>>
+        usecase "Đổi mật khẩu"             as UC_ChangePwd  <<public>>
+    }
+
+    ' ── NHÓM: QUẢN LÝ THÔNG TIN CÁ NHÂN ──────────────────
+    package "Thông tin cá nhân" {
+        usecase "Xem hồ sơ cá nhân"        as UC_Profile    <<employee>>
+        usecase "Cập nhật thông tin\ncá nhân" as UC_UpdateProfile <<employee>>
+    }
+
+    ' ── NHÓM: CHẤM CÔNG ───────────────────────────────────
+    package "Chấm công" {
+        usecase "Check-in"                  as UC_CheckIn    <<employee>>
+        usecase "Check-out"                 as UC_CheckOut   <<employee>>
+        usecase "Xem lịch sử\nchấm công"   as UC_AttHistory <<employee>>
+        usecase "Xem thống kê\nchấm công tháng" as UC_AttStats <<employee>>
+        usecase "Xem chấm công\nphòng ban"  as UC_DeptAtt    <<manager>>
+        usecase "Thống kê chấm công\nphòng ban" as UC_DeptAttStats <<manager>>
+    }
+
+    ' ── NHÓM: ĐƠN YÊU CẦU / NGHỈ PHÉP ───────────────────
+    package "Đơn yêu cầu" {
+        usecase "Gửi đơn yêu cầu"          as UC_SubmitReq  <<employee>>
+        usecase "Gửi đơn nghỉ phép"        as UC_Leave      <<employee>>
+        usecase "Gửi đơn làm thêm giờ"     as UC_OT         <<employee>>
+        usecase "Xem đơn đã gửi"           as UC_ViewMyReq  <<employee>>
+        usecase "Hủy đơn yêu cầu"          as UC_CancelReq  <<employee>>
+        usecase "Xem đơn phòng ban"         as UC_ViewDeptReq <<manager>>
+        usecase "Duyệt đơn yêu cầu"        as UC_ApproveReq <<manager>>
+        usecase "Từ chối đơn yêu cầu"      as UC_RejectReq  <<manager>>
+    }
+
+    ' ── NHÓM: NHIỆM VỤ ────────────────────────────────────
+    package "Quản lý nhiệm vụ" {
+        usecase "Xem nhiệm vụ\nđược giao"  as UC_MyTasks    <<employee>>
+        usecase "Cập nhật trạng thái\nnhiệm vụ" as UC_UpdateTask <<employee>>
+        usecase "Giao nhiệm vụ"            as UC_AssignTask <<manager>>
+        usecase "Quản lý nhiệm vụ\nphòng ban" as UC_MgrTask  <<manager>>
+    }
+
+    ' ── NHÓM: NHẮN TIN ────────────────────────────────────
+    package "Nhắn tin / Chat" {
+        usecase "Nhắn tin cá nhân"          as UC_PrivateChat <<employee>>
+        usecase "Chat nhóm phòng ban"       as UC_GroupChat   <<employee>>
+        usecase "Tạo nhóm chat\nphòng ban"  as UC_CreateGroup <<manager>>
+    }
+
+    ' ── NHÓM: THÔNG BÁO ───────────────────────────────────
+    package "Thông báo" {
+        usecase "Xem thông báo"             as UC_ViewNoti   <<employee>>
+        usecase "Đánh dấu đã đọc"          as UC_MarkRead   <<employee>>
+        usecase "Tạo thông báo\nphòng ban"  as UC_CreateDeptNoti <<manager>>
+        usecase "Tạo thông báo\ntoàn công ty" as UC_CreateCompanyNoti <<admin>>
+    }
+
+    ' ── NHÓM: DASHBOARD ───────────────────────────────────
+    package "Dashboard" {
+        usecase "Xem dashboard\ncá nhân"    as UC_EmpDash    <<employee>>
+        usecase "Xem dashboard\nphòng ban"  as UC_DeptDash   <<manager>>
+        usecase "Xem dashboard\ntoàn hệ thống" as UC_AdminDash <<admin>>
+    }
+
+    ' ── NHÓM: QUẢN TRỊ HỆ THỐNG (Admin) ──────────────────
+    package "Quản trị hệ thống" {
+        usecase "Quản lý nhân viên"         as UC_ManageEmp  <<admin>>
+        usecase "Duyệt nhân viên mới"      as UC_ApproveEmp <<admin>>
+        usecase "Khóa / Mở khóa\ntài khoản" as UC_LockUser  <<admin>>
+        usecase "Quản lý phòng ban"         as UC_ManageDept <<admin>>
+        usecase "Cài đặt hệ thống"         as UC_Settings   <<admin>>
+    }
+}
+
+' ── LIÊN KẾT: EMPLOYEE ────────────────────────────────────
+Employee --> UC_Register
+Employee --> UC_Login
+Employee --> UC_ChangePwd
+Employee --> UC_Profile
+Employee --> UC_UpdateProfile
+Employee --> UC_CheckIn
+Employee --> UC_CheckOut
+Employee --> UC_AttHistory
+Employee --> UC_AttStats
+Employee --> UC_SubmitReq
+Employee --> UC_ViewMyReq
+Employee --> UC_CancelReq
+Employee --> UC_MyTasks
+Employee --> UC_UpdateTask
+Employee --> UC_PrivateChat
+Employee --> UC_GroupChat
+Employee --> UC_ViewNoti
+Employee --> UC_MarkRead
+Employee --> UC_EmpDash
+
+' ── LIÊN KẾT: MANAGER ─────────────────────────────────────
+Manager --> UC_DeptAtt
+Manager --> UC_DeptAttStats
+Manager --> UC_ViewDeptReq
+Manager --> UC_ApproveReq
+Manager --> UC_RejectReq
+Manager --> UC_AssignTask
+Manager --> UC_MgrTask
+Manager --> UC_CreateGroup
+Manager --> UC_CreateDeptNoti
+Manager --> UC_DeptDash
+
+' ── LIÊN KẾT: ADMIN ───────────────────────────────────────
+Admin --> UC_ManageEmp
+Admin --> UC_ApproveEmp
+Admin --> UC_LockUser
+Admin --> UC_ManageDept
+Admin --> UC_Settings
+Admin --> UC_CreateCompanyNoti
+Admin --> UC_AdminDash
+
+' ── QUAN HỆ GIỮA CÁC USE CASE ────────────────────────────
+UC_SubmitReq <|-- UC_Leave  : <<extends>>
+UC_SubmitReq <|-- UC_OT     : <<extends>>
+
+UC_ApproveReq ..> UC_ViewDeptReq : <<include>>
+UC_RejectReq  ..> UC_ViewDeptReq : <<include>>
+
+UC_ManageEmp <|-- UC_ApproveEmp : <<extends>>
+UC_ManageEmp <|-- UC_LockUser   : <<extends>>
+
+UC_CheckIn  ..> UC_Login : <<include>>
+UC_CheckOut ..> UC_Login : <<include>>
+
+@enduml

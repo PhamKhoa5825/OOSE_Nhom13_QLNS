@@ -1,0 +1,66 @@
+@startuml
+package "com.example.qlns.Controller" {
+    class AuthController {
+        - AuthService authService
+        + login(LoginRequest) : AuthResponse
+    }
+}
+
+package "com.example.qlns.Service" {
+    class AuthService {
+        - UserRepository userRepo
+        - PasswordEncoder passwordEncoder
+        - JwtUtils jwtUtils
+        + authenticate(LoginRequest) : AuthResponse
+    }
+}
+
+package "com.example.qlns.Security" {
+    class JwtUtils {
+        - String secretKey
+        + generateToken(User) : String
+        + validateToken(String) : boolean
+    }
+    class SecurityConfig {
+        + filterChain(HttpSecurity) : SecurityFilterChain
+        + passwordEncoder() : PasswordEncoder
+    }
+}
+
+package "com.example.qlns.Repository" {
+    interface UserRepository {
+        + findByUsername(String) : Optional<User>
+    }
+}
+
+package "com.example.qlns.Entity" {
+    class User {
+        - Long id
+        - String username
+        - String passwordHash
+        - Role role
+        - UserStatus status
+    }
+}
+
+package "com.example.qlns.DTO" {
+    class LoginRequest {
+        - String username
+        - String password
+    }
+    class AuthResponse {
+        - String token
+        - String username
+        - String role
+    }
+}
+
+AuthController --> AuthService : calls
+AuthService --> UserRepository : uses
+AuthService --> JwtUtils : generates token
+AuthService --> LoginRequest : input
+AuthService --> AuthResponse : output
+UserRepository ..> User : returns
+SecurityConfig ..> AuthService : configures
+
+@enduml

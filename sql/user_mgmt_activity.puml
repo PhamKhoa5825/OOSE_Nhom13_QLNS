@@ -1,0 +1,18 @@
+@startuml
+start
+:Admin mở danh sách "Nhân viên";
+:Lọc ra các nhân viên có trạng thái INACTIVE;
+if (Duyệt người mới?) then (Có)
+  :Nhấn nút "Duyệt";
+  :Chọn phòng ban & Vai trò;
+  :Hệ thống cập nhật User (ACTIVE) & Employee (Department);
+else (Khóa tài khoản?)
+  :Chọn nhân viên đang ACTIVE;
+  :Nhấn nút trạng thái;
+  :Chọn "LOCKED";
+  :Hệ thống cập nhật User status thành LOCKED;
+endif
+:Thông báo "Thành công";
+:Tải lại danh sách;
+stop
+@enduml

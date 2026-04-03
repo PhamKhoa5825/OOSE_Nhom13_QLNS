@@ -1,0 +1,49 @@
+@startuml
+class AuthViewController {
+  +register(): String
+}
+
+class AuthController {
+  -authService: AuthService
+  +register(request: UserRegistrationRequest): ResponseEntity
+}
+
+class AuthService {
+  -userRepository: UserRepository
+  -employeeRepository: EmployeeRepository
+  -passwordEncoder: PasswordEncoder
+  +register(request: UserRegistrationRequest): AuthenticationResponse
+}
+
+class UserRegistrationRequest {
+  -fullName: String
+  -email: String
+  -password: String
+  -phone: String
+  -address: String
+  -gender: Gender
+  -dateOfBirth: LocalDate
+  +getFullName(): String
+  +setEmail(email: String)
+}
+
+class User {
+  -id: Long
+  -username: String
+  -passwordHash: String
+  -role: Role
+}
+
+class Employee {
+  -id: Long
+  -fullName: String
+  -email: String
+  -departmentId: Long
+}
+
+AuthViewController ..> AuthController : "Gửi Request qua Browser"
+AuthController o-- AuthService
+AuthService ..> UserRegistrationRequest : "Sử dụng DTO"
+AuthService ..> User : "Tạo mới"
+AuthService ..> Employee : "Tạo mới"
+@enduml

@@ -1,0 +1,134 @@
+@startuml UC1_Sequence_Checkin
+!theme plain
+skinparam participant {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam sequenceArrowColor #1565C0
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+}
+
+title Sequence Diagram — UC1: Check-in GPS
+
+actor "Nhân viên" as Emp
+boundary "Giao diện\n(attendance.html)" as UI
+control "AttendanceController" as Ctrl
+control "AttendanceServiceImpl" as Svc
+entity "EmployeeRepository" as EmpRepo
+entity "AttendanceRepository" as AttRepo
+entity "CompanySettings\nRepository" as CSRepo
+control "AttendanceMapper" as Mapper
+control "ApplicationEvent\nPublisher" as Pub
+
+database "MySQL" as DB
+
+== Bước 1: Nhân viên gửi yêu cầu Check-in ==
+Emp -> UI : Nhấn **CHECK IN**
+activate UI
+UI -> UI : navigator.geolocation\n(Lấy latitude, longitude)
+UI -> Ctrl : POST /api/attendance/check-in\n{employeeId, latitude, longitude}\nHeader: Authorization
+activate Ctrl
+
+== Bước 2: Controller chuyển tiếp đến Service ==
+Ctrl -> Svc : checkIn(employeeId, lat, lng)
+activate Svc
+
+== Bước 3: Truy vấn thông tin nhân viên ==
+Svc -> EmpRepo : findById(employeeId)
+activate EmpRepo
+EmpRepo -> DB : SELECT * FROM employees\nWHERE id = ?
+DB --> EmpRepo : Optional<Employee>
+EmpRepo --> Svc : Optional<Employee>
+deactivate EmpRepo
+
+alt Nhân viên không tồn tại
+    Svc --> Ctrl : throw ResourceNotFoundException
+    Ctrl --> UI : 404 Not Found\n("Nhân viên không tồn tại")
+    UI --> Emp : Hiển thị thông báo lỗi
+else Nhân viên hợp lệ
+
+    == Bước 4: Kiểm tra trùng lặp chấm công ==
+    Svc -> AttRepo : existsByEmployeeIdAndDate\n(employeeId, today)
+    activate AttRepo
+    AttRepo -> DB : SELECT COUNT(*) FROM attendance\nWHERE employee_id = ? AND date = ?
+    DB --> AttRepo : count
+    AttRepo --> Svc : boolean
+    deactivate AttRepo
+
+    alt Đã chấm công hôm nay (count > 0)
+        Svc --> Ctrl : throw AttendanceException
+        Ctrl --> UI : 400 Bad Request\n("Đã chấm công hôm nay")
+        UI --> Emp : Hiển thị thông báo lỗi
+    else Chưa chấm công
+
+        == Bước 5: Lấy cấu hình công ty ==
+        Svc -> CSRepo : findById(1L)
+        activate CSRepo
+        CSRepo -> DB : SELECT * FROM company_settings\nWHERE id = 1
+        DB --> CSRepo : CompanySettings
+        CSRepo --> Svc : CompanySettings Entity
+        deactivate CSRepo
+
+        == Bước 6: Kiểm tra vị trí GPS ==
+        Svc -> Svc : validateLocation(lat, lng, settings)\n**Công thức Haversine**
+        note right of Svc #FFF9C4
+          Tính khoảng cách giữa
+          (lat, lng) của nhân viên
+          và tọa độ công ty trong settings.
+          So sánh với allowedRadius.
+        end note
+
+        alt Ngoài phạm vi cho phép
+            Svc --> Ctrl : throw LocationException
+            Ctrl --> UI : 400 Bad Request\n("Ngoài phạm vi cho phép")
+            UI --> Emp : Hiển thị thông báo lỗi
+        else Vị trí hợp lệ
+
+            == Bước 7: Xử lý logic nghiệp vụ ==
+            Svc -> Svc : calculateAttendanceStatus\n(currentTime, settings)
+
+            alt Đi muộn
+                note right of Svc #FFCCCC : lateMinutes = now - checkInTime\nstatus = **LATE**
+            else Đúng giờ
+                note right of Svc #CCFFCC : lateMinutes = 0\nstatus = **ON_TIME**
+            end
+
+            == Bước 8: Lưu thông tin chấm công ==
+            Svc -> AttRepo : save(new Attendance)
+            activate AttRepo
+            AttRepo -> DB : INSERT INTO attendance\n(employee_id, lat, lng,\nstatus, late_minutes, ...)
+            DB --> AttRepo : saved_entity
+            AttRepo --> Svc : Attendance Entity
+            deactivate AttRepo
+
+            == Bước 9: Ghi nhật ký hệ thống ==
+            Svc -> Pub : publishEvent(SystemActivityEvent)
+            activate Pub
+            note right of Pub #FFF9C4
+              Ghi nhật ký hoạt động
+              vào bảng **system_logs**
+            end note
+            Pub --> Svc
+            deactivate Pub
+
+            == Bước 10: Chuyển đổi dữ liệu trả về ==
+            Svc -> Mapper : toDTO(attendance)
+            activate Mapper
+            Mapper --> Svc : AttendanceDTO
+            deactivate Mapper
+
+            Svc --> Ctrl : AttendanceDTO
+            deactivate Svc
+
+            Ctrl --> UI : 200 OK (JSON)
+            deactivate Ctrl
+
+            UI -> UI : location.reload()
+            UI --> Emp : Hiển thị kết quả\nchấm công thành công
+        end
+    end
+end
+deactivate UI
+@enduml

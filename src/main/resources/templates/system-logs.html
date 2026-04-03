@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="flex h-screen overflow-hidden">
+    <aside th:replace="~{layout :: sidebar('system-logs')}"></aside>
+    <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative custom-scrollbar">
+        <header th:replace="~{layout :: header}"></header>
+
+        <div class="p-8 flex flex-col gap-8">
+            <!-- Title -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tight text-white">Nhật ký hệ thống</h1>
+                    <p class="text-slate-400 mt-1">Theo dõi mọi hoạt động quan trọng trên hệ thống</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 text-white font-semibold hover:bg-slate-700 transition-all border border-slate-700 text-sm">
+                        <span class="material-symbols-outlined text-lg">download</span> Xuất CSV
+                    </button>
+                    <button onclick="fetchLogs()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all text-sm">
+                        <span class="material-symbols-outlined text-lg">refresh</span> Làm mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-card rounded-2xl p-5 border border-white/5">
+                    <div class="size-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-blue-400">list_alt</span></div>
+                    <p class="text-2xl font-black text-white" id="statTotal">--</p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Tổng log</p>
+                </div>
+                <div class="glass-card rounded-2xl p-5 border border-white/5">
+                    <div class="size-10 rounded-xl bg-green-500/10 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-green-400">login</span></div>
+                    <p class="text-2xl font-black text-white" id="statLogin">--</p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Đăng nhập</p>
+                </div>
+                <div class="glass-card rounded-2xl p-5 border border-white/5">
+                    <div class="size-10 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-amber-400">edit_note</span></div>
+                    <p class="text-2xl font-black text-white" id="statWrite">--</p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Tạo / Sửa / Xóa</p>
+                </div>
+                <div class="glass-card rounded-2xl p-5 border border-white/5">
+                    <div class="size-10 rounded-xl bg-rose-500/10 flex items-center justify-center mb-3"><span class="material-symbols-outlined text-rose-400">warning</span></div>
+                    <p class="text-2xl font-black text-white" id="statFail">--</p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Thất bại / Khác</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="glass rounded-2xl p-5 border border-white/5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Loại hành động</label>
+                        <select id="filterAction" onchange="fetchLogs()" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-primary focus:border-primary">
+                            <option value="">Tất cả</option>
+                            <option value="LOGIN">LOGIN</option>
+                            <option value="LOGOUT">LOGOUT</option>
+                            <option value="CREATE">CREATE</option>
+                            <option value="UPDATE">UPDATE</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="LOGIN_FAIL">LOGIN_FAIL</option>
+                            <option value="OTHER">OTHER</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Từ ngày</label>
+                        <input type="date" id="filterFrom" onchange="fetchLogs()" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-primary focus:border-primary"/>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Đến ngày</label>
+                        <input type="date" id="filterTo" onchange="fetchLogs()" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:ring-primary focus:border-primary"/>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="clearFilters()" class="w-full py-2.5 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-semibold transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">filter_alt_off</span> Xóa bộ lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                        <tr class="border-b border-slate-700/50">
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">#</th>
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Thời gian</th>
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Người dùng</th>
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Phòng ban</th>
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Hành động</th>
+                            <th class="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Mô tả</th>
+                        </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                        <tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                            <span class="material-symbols-outlined text-4xl mb-2 block">hourglass_empty</span>Đang tải dữ liệu...
+                        </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between px-6 py-4 border-t border-slate-700/50">
+                    <p class="text-xs text-slate-500" id="pageInfo">Trang 1</p>
+                    <div class="flex gap-2" id="paginationBtns"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+
+<script>
+    const API='/api/admin/logs'; let currentPage=0; const pageSize=20;
+    function getToken(){const c=document.cookie.split(';').find(c=>c.trim().startsWith('jwt='));return c?c.trim().substring(4):'';}
+    function headers(){return{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json'};}
+
+    async function fetchLogs(page){
+        if(typeof page==='number')currentPage=page;
+        const action=document.getElementById('filterAction').value;
+        const fromDate=document.getElementById('filterFrom').value;
+        const toDate=document.getElementById('filterTo').value;
+        let url=`${API}/search?page=${currentPage}&size=${pageSize}`;
+        if(action)url+=`&action=${action}`;
+        if(fromDate)url+=`&fromDate=${fromDate}`;
+        if(toDate)url+=`&toDate=${toDate}`;
+        try{
+            const res=await fetch(url,{headers:headers(),credentials:'same-origin'});
+            if(!res.ok){
+                if(res.status===401){window.location.href='/login';return;}
+                if(res.status===403){
+                    document.getElementById('logTableBody').innerHTML=`<tr><td colspan="6" class="px-6 py-12 text-center text-rose-400"><span class="material-symbols-outlined text-4xl mb-2 block">lock</span>Bạn cần quyền Admin để xem nhật ký hệ thống.</td></tr>`;
+                    return;
+                }
+                throw new Error('HTTP '+res.status);
+            }
+            const data=await res.json();
+            renderTable(data.logs||[]);
+            renderPagination(data.currentPage,data.totalPages,data.totalItems);
+            updateStats(data.logs||[]);
+        }catch(e){
+            document.getElementById('logTableBody').innerHTML=`<tr><td colspan="6" class="px-6 py-12 text-center text-amber-400"><span class="material-symbols-outlined text-4xl mb-2 block">wifi_off</span>Không thể kết nối đến máy chủ. Vui lòng thử lại.</td></tr>`;
+        }
+    }
+
+    function renderTable(logs){
+        const tbody=document.getElementById('logTableBody');
+        if(!logs.length){tbody.innerHTML=`<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500"><span class="material-symbols-outlined text-4xl mb-2 block">search_off</span>Không tìm thấy log nào</td></tr>`;return;}
+        tbody.innerHTML=logs.map((l,i)=>`
+        <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+            <td class="px-6 py-3.5 text-slate-500 font-mono text-xs">${l.id||(currentPage*pageSize+i+1)}</td>
+            <td class="px-6 py-3.5"><p class="text-white text-xs font-semibold">${fmtDate(l.createdAt)}</p><p class="text-slate-500 text-[10px]">${fmtTime(l.createdAt)}</p></td>
+            <td class="px-6 py-3.5"><div class="flex items-center gap-2.5"><div class="size-8 rounded-lg ${l.username==='System'?'bg-slate-700':'bg-primary/20'} flex items-center justify-center text-xs font-bold ${l.username==='System'?'text-slate-400':'text-primary'}">${(l.username||'S')[0].toUpperCase()}</div><div><p class="text-white text-xs font-semibold">${l.username||'System'}</p><p class="text-slate-500 text-[10px]">${l.position||''}</p></div></div></td>
+            <td class="px-6 py-3.5 text-xs text-slate-400">${l.department||'<span class="text-slate-600">—</span>'}</td>
+            <td class="px-6 py-3.5">${badge(l.action)}</td>
+            <td class="px-6 py-3.5 text-xs text-slate-300 max-w-xs truncate" title="${l.description||''}">${l.description||'—'}</td>
+        </tr>`).join('');
+    }
+
+    function badge(a){
+        const m={'LOGIN':'bg-green-900/40 text-green-400 border-green-500/20','LOGOUT':'bg-slate-700/40 text-slate-300 border-slate-500/20','CREATE':'bg-blue-900/40 text-blue-400 border-blue-500/20','UPDATE':'bg-amber-900/40 text-amber-400 border-amber-500/20','DELETE':'bg-rose-900/40 text-rose-400 border-rose-500/20','LOGIN_FAIL':'bg-red-900/40 text-red-400 border-red-500/20','OTHER':'bg-purple-900/40 text-purple-400 border-purple-500/20'};
+        return `<span class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${m[a]||m['OTHER']}">${a||'OTHER'}</span>`;
+    }
+
+    function fmtDate(dt){if(!dt)return'—';try{return new Date(dt).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return dt.substring(0,10);}}
+    function fmtTime(dt){if(!dt)return'';try{return new Date(dt).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return dt.substring(11,19);}}
+
+    function renderPagination(cur,total,items){
+        document.getElementById('pageInfo').textContent=`Hiển thị ${cur*pageSize+1}–${Math.min((cur+1)*pageSize,items)} / ${items} log`;
+        const c=document.getElementById('paginationBtns');
+        if(total<=1){c.innerHTML='';return;}
+        let h=`<button onclick="fetchLogs(${cur-1})" ${cur===0?'disabled':''} class="px-3 py-1.5 rounded-lg text-xs font-semibold ${cur===0?'bg-slate-800 text-slate-600 cursor-not-allowed':'bg-slate-700 text-slate-300 hover:bg-slate-600'}">Trước</button>`;
+        const s=Math.max(0,cur-2),e=Math.min(total,s+5);
+        for(let i=s;i<e;i++)h+=`<button onclick="fetchLogs(${i})" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${i===cur?'bg-primary text-white':'bg-slate-700 text-slate-300 hover:bg-slate-600'}">${i+1}</button>`;
+        h+=`<button onclick="fetchLogs(${cur+1})" ${cur>=total-1?'disabled':''} class="px-3 py-1.5 rounded-lg text-xs font-semibold ${cur>=total-1?'bg-slate-800 text-slate-600 cursor-not-allowed':'bg-slate-700 text-slate-300 hover:bg-slate-600'}">Sau</button>`;
+        c.innerHTML=h;
+    }
+
+    function updateStats(logs){let lo=0,wr=0,fa=0;logs.forEach(l=>{if(l.action==='LOGIN'||l.action==='LOGOUT')lo++;else if(['CREATE','UPDATE','DELETE'].includes(l.action))wr++;else fa++;});document.getElementById('statTotal').textContent=logs.length;document.getElementById('statLogin').textContent=lo;document.getElementById('statWrite').textContent=wr;document.getElementById('statFail').textContent=fa;}
+    function clearFilters(){document.getElementById('filterAction').value='';document.getElementById('filterFrom').value='';document.getElementById('filterTo').value='';currentPage=0;fetchLogs();}
+    function exportCSV(){const rows=document.querySelectorAll('#logTableBody tr');if(!rows.length)return;let csv='ID,Thoi gian,Nguoi dung,Phong ban,Hanh dong,Mo ta\n';rows.forEach(r=>{const cells=r.querySelectorAll('td');if(cells.length>=6){csv+=Array.from(cells).map(c=>'"'+c.textContent.trim().replace(/"/g,'""')+'"').join(',')+'\n';}});const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='system_logs_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
+    document.addEventListener('DOMContentLoaded',()=>fetchLogs(0));
+</script>
+</body>
+</html>

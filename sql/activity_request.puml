@@ -1,0 +1,63 @@
+@startuml
+title Activity: Tạo và duyệt đơn yêu cầu
+start
+
+'|Nhân viên|
+:Mở trang /requests;
+:Nhấn **"Gửi yêu cầu mới"**;
+:Nhập title, description,
+đính kèm file (fileUrl, fileName);
+:POST /api/requests/employee/{empId};
+
+:RequestServiceImpl.createRequest();
+
+if (Title rỗng?) then (Có)
+  :Throw BadRequestException;
+  stop
+else (Không)
+endif
+
+:employeeRepo.findById(empId);
+:Tạo Request entity
+(status = **PENDING**, createdAt = now());
+:requestRepo.save();
+:RequestMapper.toDTO() flatten
+(employee.fullName → employeeName
+employee.department.name → departmentName);
+:Trả RequestDTO → **200 OK**;
+:Hiển thị "Gửi thành công";
+
+'|Manager|
+:Mở trang /approvals;
+:Thấy danh sách đơn chờ duyệt;
+:Chọn đơn cần xử lý;
+:PUT /api/requests/{id}/review;
+
+:RequestServiceImpl.reviewRequest();
+
+if (Đơn ở trạng thái PENDING?) then (Không)
+  :Throw BadRequestException
+  "Đơn đã được xử lý";
+  stop
+else (Có)
+endif
+
+if (Quyết định?) then (Duyệt)
+  :status → **APPROVED**;
+  :reviewedBy = Manager;
+else (Từ chối)
+  if (Có lý do từ chối?) then (Không)
+    :Throw BadRequestException
+    "Phải nhập lý do từ chối";
+    stop
+  else (Có)
+  endif
+  :status → **REJECTED**;
+  :rejectionReason = "...";
+  :reviewedBy = Manager;
+endif
+
+:requestRepo.save();
+:Trả RequestDTO cập nhật;
+stop
+@enduml

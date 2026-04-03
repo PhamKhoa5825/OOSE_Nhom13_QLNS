@@ -1,0 +1,66 @@
+@startuml
+title Sequence: Đăng nhập và Xác thực JWT
+actor "Người dùng" as User
+boundary "Giao diện (login.html)" as UI
+control "AuthController" as Ctrl
+control "AuthService" as Svc
+control "CustomUser\nDetailsService" as UDS
+entity "UserRepository" as Repo
+control "JwtService" as JWT
+database "MySQL" as DB
+
+User -> UI : Nhập username / password
+User -> UI : Nhấn **Đăng nhập**
+UI -> Ctrl : POST /api/auth/login\n{username, password}
+activate Ctrl
+
+Ctrl -> Svc : authenticate(request)
+activate Svc
+
+Svc -> UDS : loadUserByUsername(username)
+activate UDS
+
+UDS -> Repo : findByUsername(username)
+activate Repo
+Repo -> DB : SELECT * FROM users\nWHERE username = ?
+DB --> Repo : Dữ liệu User (User Entity)
+Repo --> UDS : Optional<User>
+deactivate Repo
+
+alt User không tồn tại (Optional.isEmpty)
+    UDS --> Svc : Throw UsernameNotFoundException
+    Svc --> Ctrl : Throw Exception
+    Ctrl --> UI : 404 Not Found / Error Message
+    UI --> User : Hiển thị "Người dùng không tồn tại"
+else User tồn tại
+    UDS -> UDS : Map User sang UserDetailsImpl
+    UDS --> Svc : UserDetailsImpl
+    deactivate UDS
+
+    Svc -> Svc : BCrypt.matches(password, hash)
+
+    alt Mật khẩu không khớp
+        Svc --> Ctrl : Throw BadCredentialsException
+        Ctrl --> UI : 401 Unauthorized
+        UI --> User : Hiển thị "Sai mật khẩu"
+    else Tài khoản bị khóa (status ≠ ACTIVE)
+        Svc --> Ctrl : Throw UnauthorizedException
+        Ctrl --> UI : 403 Forbidden
+        UI --> User : Hiển thị "Tài khoản bị khóa"
+    else Thành công
+        Svc -> JWT : generateToken(userDetails)
+        activate JWT
+        JWT --> Svc : JWT token (HS256)
+        deactivate JWT
+
+        Svc --> Ctrl : AuthResponse\n{token, userId, username, role}
+        deactivate Svc
+
+        Ctrl --> UI : 200 OK + Set-Cookie: jwt=token
+        deactivate Ctrl
+
+        UI -> UI : Lưu JWT vào Cookie
+        UI -> User : Redirect → /dashboard
+    end
+end
+@enduml

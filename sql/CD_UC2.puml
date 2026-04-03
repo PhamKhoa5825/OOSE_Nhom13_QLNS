@@ -1,0 +1,91 @@
+@startuml
+!theme plain
+top to bottom direction
+skinparam nodesep 50
+skinparam ranksep 60
+
+' Định dạng màu sắc dựa theo các bản vẽ trước của bạn
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #2E7D32
+}
+
+title Class Diagram (Strict Package Structure) — UC2: Phê duyệt nghỉ phép
+
+
+
+    package "Controller" {
+        class RequestController {
+            + getPendingByDepartment(Long): ResponseEntity
+            + reviewRequest(Long, Long, ReviewRequestRequest): ResponseEntity
+        }
+    }
+
+    package "Security" {
+        class SecurityService {
+            + validateManagerDepartment(Long): void
+            + getCurrentUserId(): Long
+        }
+    }
+
+    package "Service" {
+        interface RequestService <<interface>> {
+            + getPendingByDepartment(Long): List<RequestDTO>
+            + reviewRequest(Long, Long, ReviewRequestRequest): RequestDTO
+        }
+
+        package "Impl" {
+            class RequestServiceImpl {
+                - processLeaveApproval(Request): void
+                - createAttendanceForLeave(Employee, LocalDate, ...): void
+                + reviewRequest(Long, Long, ReviewRequestRequest): RequestDTO
+            }
+        }
+    }
+
+    package "Repository" {
+        interface RequestRepository <<interface>>
+        interface EmployeeRepository <<interface>>
+        interface AttendanceRepository <<interface>>
+    }
+
+    package "Entity" {
+        class Request
+        class RequestDetail
+        class Employee
+        class Attendance
+    }
+
+    package "Mapper" {
+        class RequestMapper {
+            + toDTO(Request): RequestDTO
+        }
+    }
+
+    package "Event" {
+        class SystemActivityEvent
+    }
+
+
+' --- Quan hệ giữa các thành phần theo đúng logic code ---
+RequestController --> RequestService : uses
+RequestController --> SecurityService : uses
+RequestServiceImpl ..|> RequestService : implements
+
+RequestServiceImpl --> RequestRepository : uses
+RequestServiceImpl --> EmployeeRepository : uses
+RequestServiceImpl --> AttendanceRepository : uses
+RequestServiceImpl --> RequestMapper : uses
+RequestServiceImpl ..> SystemActivityEvent : publishes
+
+Request "1" *-- "n" RequestDetail : composition
+Request "n" -- "1" Employee : submittedBy
+Request "n" -- "0..1" Employee : reviewedBy
+
+' Điều hướng ẩn để giữ layout ngang cho Word
+RequestController -[hidden]right- SecurityService
+RequestRepository -[hidden]right- EmployeeRepository
+EmployeeRepository -[hidden]right- AttendanceRepository
+
+@enduml

@@ -1,0 +1,176 @@
+@startuml ERD
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+'hide circle
+skinparam linetype ortho
+
+' Groups - Using package for visual grouping
+package "Nhân sự (Core HR)" #f2f2f2 {
+    class User {
+        * id : UUID <<PK>>
+        --
+        username : VARCHAR
+        role : VARCHAR
+        email : VARCHAR
+        password_hash : VARCHAR
+        status : VARCHAR
+        employee_id : UUID <<FK>>
+        created_at : TIMESTAMP
+    }
+
+    class Employee {
+        * id : UUID <<PK>>
+        --
+        full_name : VARCHAR
+        gender : VARCHAR
+        join_date : DATE
+        email : VARCHAR
+        address : VARCHAR
+        position : VARCHAR
+        avatar_url : VARCHAR
+        phone : VARCHAR
+        department_id : UUID <<FK>>
+    }
+}
+
+package "Operations (Vận hành & Công việc)" #edf2f7 {
+    class Department {
+        * id : UUID <<PK>>
+        --
+        description : TEXT
+        manager_id : UUID <<FK>>
+    }
+
+    class Attendance {
+        * id : UUID <<PK>>
+        --
+        employee_id : UUID <<FK>>
+        check_in_time : TIMESTAMP
+        check_out_time : TIMESTAMP
+        date : DATE
+        status : VARCHAR
+        note : TEXT
+    }
+
+    class Request {
+        * id : UUID <<PK>>
+        --
+        title : VARCHAR
+        description : TEXT
+        start_date : DATE
+        duration_days : INT
+        attachment_url : VARCHAR
+        employee_id : UUID <<FK>>
+        rejection_reason : TEXT
+        created_at : TIMESTAMP
+    }
+
+    class Task {
+        * id : UUID <<PK>>
+        --
+        description : TEXT
+        priority : INT
+        deadline : TIMESTAMP
+        status : VARCHAR
+        attachment_url : VARCHAR
+        assigned_by_id : UUID <<FK>>
+        assigned_to_id : UUID <<FK>>
+        created_at : TIMESTAMP
+    }
+
+    class TaskUpdate {
+        * id : UUID <<PK>>
+        --
+        task_id : UUID <<FK>>
+        status : VARCHAR
+        note : TEXT
+        updated_by_id : UUID <<FK>>
+        updated_at : TIMESTAMP
+    }
+}
+
+package "Communication (Giao tiếp)" #fdfad9 {
+    class Notification {
+        * id : UUID <<PK>>
+        --
+        title : VARCHAR
+        message : TEXT
+        created_at : TIMESTAMP
+        created_by_id : UUID <<FK>>
+    }
+
+    class UserNotification {
+        * notification_id : UUID <<FK>>
+        * user_id : UUID <<FK>>
+        --
+        is_read : BOOLEAN
+        read_at : TIMESTAMP
+    }
+
+    class ChatRoom {
+        * id : UUID <<PK>>
+        --
+        name : VARCHAR
+        type : VARCHAR
+        created_at : TIMESTAMP
+    }
+
+    class ChatRoomMember {
+        * chat_room_id : UUID <<FK>>
+        * employee_id : UUID <<FK>>
+        --
+        joined_at : TIMESTAMP
+    }
+
+    class Message {
+        * id : UUID <<PK>>
+        --
+        chat_room_id : UUID <<FK>>
+        sender_id : UUID <<FK>>
+        content : TEXT
+        created_at : TIMESTAMP
+    }
+}
+
+package "System & Settings (Hệ thống & Cài đặt)" #f9f5f0 {
+    class CompanySettings {
+        * id : UUID <<PK>>
+        --
+        check_in_time : TIME
+        check_out_time : TIME
+        late_threshold_minutes : INT
+        enable_ip_restriction : BOOLEAN
+        allowed_ips : TEXT
+    }
+
+    class SystemLog {
+        * id : UUID <<PK>>
+        --
+        action : VARCHAR
+        entity_name : VARCHAR
+        entity_id : UUID
+        performed_by : UUID <<FK>>
+        performed_at : TIMESTAMP
+        ip_address : VARCHAR
+    }
+}
+
+' Relationships
+User ||--|| Employee : "is linked to"
+Employee ||--o{ Attendance : "records"
+Employee }o--|| Department : "employs"
+Department ||--o| Employee : "managed by"
+Employee ||--o{ Request : "creates"
+Employee ||--o{ Request : "reviews"
+Employee ||--o{ Task : "assigns"
+Employee ||--o{ Task : "is assigned to"
+Task ||--o{ TaskUpdate : "performs"
+User ||--o{ Notification : "creates"
+Notification ||--o{ UserNotification : "sends"
+User ||--o{ UserNotification : "receives"
+ChatRoom ||--o{ ChatRoomMember : "includes"
+Employee ||--o{ ChatRoomMember : "is a member of"
+ChatRoom ||--o{ Message : "contains"
+User ||--o{ Message : "sends"
+User ||--o{ SystemLog : "performed_by"
+
+@enduml

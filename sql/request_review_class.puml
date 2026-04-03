@@ -1,0 +1,44 @@
+@startuml
+class RequestController {
+  -requestService: RequestService
+  +reviewRequest(id: Long, reviewerId: Long, req: ReviewRequestRequest): ResponseEntity
+}
+
+class RequestService {
+  -requestRepository: RequestRepository
+  +reviewRequest(id: Long, reviewerId: Long, request: ReviewRequestRequest): RequestDTO
+}
+
+class ReviewRequestRequest {
+  -approved: boolean
+  -rejectionReason: String
+  +isApproved(): boolean
+  +getRejectionReason(): String
+}
+
+class RequestDTO {
+  -id: Long
+  -title: String
+  -status: String
+  -rejectionReason: String
+}
+
+class Request {
+  -id: Long
+  -status: RequestStatus
+  -reviewerId: Long
+  -rejectionReason: String
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+RequestController o-- RequestService
+RequestService ..> ReviewRequestRequest : "Nhận dữ liệu"
+RequestService ..> RequestDTO : "Trả về"
+RequestService ..> Request : "Cập nhật"
+Request o-- RequestStatus
+@enduml

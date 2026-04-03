@@ -1,0 +1,18 @@
+@startuml
+actor "Quản trị viên (Admin)" as Admin
+participant "Browser (employees.html)" as Frontend
+participant "EmployeeController" as APIController
+participant "EmployeeService" as Service
+database "Database" as DB
+
+Admin -> Frontend : Nhấn nút "Duyệt" người mới
+Frontend -> APIController : PUT /api/employees/{id}/approve?deptId=X&role=Y
+APIController -> Service : approveEmployee(id, deptId, role)
+Service -> DB : Cập nhật User status -> ACTIVE
+Service -> DB : Gán Role & Department
+DB --> Service : OK
+Service --> APIController : HTTP 200 OK
+APIController --> Frontend : Success
+Frontend -> Admin : Hiển thị "Đã duyệt nhân viên thành công"
+Frontend -> Frontend : Tải lại danh sách nhân viên
+@enduml

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>HR Manager Pro - Đăng nhập</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4e8ce4",
+                        "background-dark": "#121821",
+                        "slate-card": "#1e2632",
+                        "slate-border": "#2d3949"
+                    },
+                    fontFamily: { "display": ["Inter", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30, 38, 50, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .bg-gradient-mesh {
+            background-color: #121821;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(217,100%,15%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(217,70%,30%,1) 0, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(217,100%,15%,1) 0, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(217,70%,30%,1) 0, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-mesh text-slate-100 min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-500">
+        <!-- Logo -->
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/40 mb-6">
+                <span class="material-symbols-outlined text-4xl">shield_person</span>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight">HR Manager Pro</h1>
+            <p class="text-slate-400 mt-2 font-medium">Đăng nhập để quản lý nhân sự hiệu quả</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="glass p-8 rounded-3xl shadow-2xl space-y-6">
+            <form id="loginForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Tên đăng nhập</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">person</span>
+                        <input id="username" type="text" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="admin / user123">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Mật khẩu</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">lock</span>
+                        <input id="password" type="password" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-12 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="••••••••">
+                        <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs font-semibold px-1">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" class="rounded border-slate-border bg-slate-card text-primary focus:ring-primary">
+                        <span class="text-slate-400 group-hover:text-slate-200">Ghi nhớ tôi</span>
+                    </label>
+                    <a href="#" class="text-primary hover:text-sky-400 transition-colors">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="w-full bg-primary hover:bg-sky-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+                    <span>ĐĂNG NHẬP</span>
+                    <span class="material-symbols-outlined text-xl">login</span>
+                </button>
+            </form>
+
+            <div id="errorMessage" class="hidden animate-in slide-in-from-top-2 duration-300">
+                <div class="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-4 rounded-2xl flex items-center gap-3 text-sm font-medium">
+                    <span class="material-symbols-outlined text-xl">error</span>
+                    <p id="errorText">Tên đăng nhập hoặc mật khẩu không đúng!</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-slate-500 text-sm font-medium">
+            Chưa có tài khoản? <a href="/register" class="text-primary font-bold hover:underline">Đăng ký ngay</a>
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+
+            if (error === 'locked') {
+                errorText.innerText = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Lưu JWT vào Cookie (7 ngày)
+                    const d = new Date();
+                    d.setTime(d.getTime() + (7*24*60*60*1000));
+                    document.cookie = `jwt=${data.token};expires=${d.toUTCString()};path=/`;
+                    
+                    // Chuyển hướng
+                    window.location.href = '/dashboard';
+                } else {
+                    const error = await response.json();
+                    errorText.innerText = error.message || 'Đăng nhập thất bại!';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorText.innerText = 'Lỗi kết nối server!';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

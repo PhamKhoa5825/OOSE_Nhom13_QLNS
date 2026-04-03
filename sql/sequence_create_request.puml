@@ -1,0 +1,53 @@
+@startuml
+title Sequence: Tạo đơn yêu cầu
+actor "Nhân viên" as Emp
+participant "Browser\n(requests.html)" as UI
+participant "RequestController" as Ctrl
+participant "RequestServiceImpl" as Svc
+participant "EmployeeRepository" as EmpRepo
+participant "RequestRepository" as ReqRepo
+participant "RequestMapper" as Mapper
+database "MySQL" as DB
+
+Emp -> UI : Nhấn "Gửi yêu cầu mới"
+Emp -> UI : Nhập title, description,\nđính kèm file
+Emp -> UI : Nhấn **Gửi**
+UI -> Ctrl : POST /api/requests/employee/{empId}\n(CreateRequestRequest)
+activate Ctrl
+
+Ctrl -> Svc : createRequest(empId, req)
+activate Svc
+
+Svc -> Svc : Validate title không rỗng
+alt Title rỗng
+    Svc --> Ctrl : Throw BadRequestException
+    Ctrl --> UI : 400 "Tiêu đề không được để trống"
+else Title hợp lệ
+    Svc -> EmpRepo : findById(empId)
+    EmpRepo -> DB : SELECT * FROM employees
+    DB --> EmpRepo : Employee entity
+    EmpRepo --> Svc : Employee (kèm Department)
+
+    Svc -> Svc : new Request()\nset employee, title, description,\nfileUrl, fileName\nstatus = PENDING (default)
+    Svc -> ReqRepo : save(request)
+    ReqRepo -> DB : INSERT INTO requests ...
+    DB --> ReqRepo : saved Request (có id, createdAt)
+
+    Svc -> Mapper : toDTO(request)
+    note right
+      Mapper flatten:
+      employee.id → employeeId
+      employee.fullName → employeeName
+      employee.department.name → departmentName
+      reviewedBy = null → reviewedByName = null
+    end note
+    Mapper --> Svc : RequestDTO
+
+    Svc --> Ctrl : RequestDTO
+    deactivate Svc
+    Ctrl --> UI : 200 OK (JSON)
+    deactivate Ctrl
+    UI --> Emp : Hiển thị "Gửi thành công"
+    UI -> UI : Tải lại danh sách đơn
+end
+@enduml

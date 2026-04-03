@@ -1,0 +1,17 @@
+@startuml
+actor "Quản lý / Admin" as Reviewer
+participant "Browser (approvals.html)" as Frontend
+participant "RequestController" as APIController
+participant "RequestService" as Service
+database "Database" as DB
+
+Reviewer -> Frontend : Nhấn Duyệt hoặc Từ chối
+Frontend -> APIController : PUT /api/requests/{id}/review/employee/{reviewerId} (JSON: ReviewRequestRequest)
+APIController -> Service : reviewRequest(id, reviewerId, req)
+Service -> DB : Cập nhật Request status & reviewerId
+DB --> Service : OK (Entity)
+Service --> APIController : Trả về RequestDTO
+APIController --> Frontend : HTTP 200 OK
+Frontend -> Reviewer : Hiển thị "Đã cập nhật trạng thái đơn"
+Frontend -> Frontend : Tải lại danh sách
+@enduml

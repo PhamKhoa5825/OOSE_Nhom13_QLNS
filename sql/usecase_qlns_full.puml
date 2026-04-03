@@ -1,0 +1,121 @@
+@startuml
+
+' ── Compact layout for 1-page Word ──
+left to right direction
+scale 0.72
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam defaultFontSize 10
+skinparam defaultFontName "Segoe UI"
+skinparam wrapWidth 160
+
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #AAAAAA
+    BorderThickness 1
+    FontSize 10
+}
+skinparam package {
+    FontSize 10
+    FontStyle bold
+    BorderThickness 1
+    BackgroundColor #FFFFFF
+}
+skinparam rectangle {
+    BorderColor #666666
+    BorderThickness 1.5
+    FontSize 12
+    FontStyle bold
+}
+skinparam arrow {
+    Color #777777
+    FontSize 9
+}
+
+' ── ACTORS ──
+actor "Nhân viên\n(Employee)" as Employee
+actor "Trưởng phòng\n(Manager)" as Manager
+actor "Quản trị viên\n(Admin)" as Admin
+
+' ── KẾ THỪA ──
+Employee <|-- Manager
+Manager  <|-- Admin
+
+' ── HỆ THỐNG ──
+rectangle "Hệ thống Quản lý Nhân sự (HRMS)" {
+
+    package "Xác thực" {
+        usecase "Đăng nhập (UC1)" as UC1
+        usecase "Đăng xuất (UC2)" as UC2
+        usecase "Xem thông tin cá nhân (UC3)" as UC3
+        usecase "Đổi mật khẩu (UC4)" as UC4
+    }
+
+    package "Thông báo" {
+        usecase "Xem thông báo (UC5)" as UC5
+    }
+
+    package "Chấm công" {
+        usecase "Check-in / Check-out (UC6)" as UC6
+        usecase "Xem lịch sử chấm công (UC7)" as UC7
+        usecase "Kiểm tra vị trí GPS" as UC_GPS
+        usecase "Tính phút đi muộn" as UC_Late
+    }
+
+    package "Đơn yêu cầu" {
+        usecase "Gửi đơn yêu cầu (UC8)" as UC8
+        usecase "Theo dõi đơn (UC9)" as UC9
+    }
+
+    package "Nhiệm vụ" {
+        usecase "Xem nhiệm vụ (UC10)" as UC10
+        usecase "Cập nhật trạng thái (UC11)" as UC11
+    }
+
+    package "Quản lý phòng ban\n(Manager)" {
+        usecase "Quản lý NV phòng ban (UC12)" as UC12
+        usecase "Xem bảng công PB (UC13)" as UC13
+        usecase "Phê duyệt đơn (UC14)" as UC14
+        usecase "Giao nhiệm vụ (UC15)" as UC15
+        usecase "Dashboard phòng ban (UC16)" as UC16
+    }
+
+    package "Quản trị hệ thống\n(Admin)" {
+        usecase "Quản lý người dùng (UC17)" as UC17
+        usecase "Quản lý phòng ban (UC18)" as UC18
+        usecase "Bảng công toàn CTy (UC19)" as UC19
+        usecase "Dashboard hệ thống (UC20)" as UC20
+    }
+}
+
+' ── LIÊN KẾT ACTOR → USE CASE ──
+Employee --> UC1
+Employee --> UC2
+Employee --> UC3
+Employee --> UC4
+Employee --> UC5
+Employee --> UC6
+Employee --> UC7
+Employee --> UC8
+Employee --> UC9
+Employee --> UC10
+Employee --> UC11
+
+Manager --> UC12
+Manager --> UC13
+Manager --> UC14
+Manager --> UC15
+Manager --> UC16
+
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+
+' ── QUAN HỆ INCLUDE / EXTEND ──
+UC6 ..> UC_GPS  : <<include>>
+UC6 ..> UC_Late : <<include>>
+
+UC14 ..> UC9 : <<extend>>\ngửi kết quả\ncho NV
+
+@enduml

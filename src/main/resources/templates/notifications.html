@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:replace="~{layout :: sidebar('notifications')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-background-dark/50">
+        <!-- Header -->
+        <header th:replace="~{layout :: header}"></header>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">Trung tâm thông báo</h2>
+            </div>
+            <!-- Notification Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-card p-6 rounded-xl border border-slate-border flex flex-col gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">mark_email_unread</span>
+                    </div>
+                    <div>
+                        <p class="text-[32px] font-bold leading-none mb-1">12</p>
+                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Tổng chưa đọc</p>
+                    </div>
+                </div>
+                <!-- Other Stat Cards omitted for brevity -->
+            </div>
+            <!-- Main Panel -->
+            <div class="grid grid-cols-12 gap-6">
+                <!-- Notification List -->
+                <div class="col-span-12 lg:col-span-8 space-y-4">
+                    <div class="space-y-3">
+                        <!-- Item 1 -->
+                        <div class="group relative flex items-start gap-4 p-4 rounded-xl border-2 border-primary/40 bg-primary/5">
+                            <div class="shrink-0">
+                                <img class="w-12 h-12 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARdYk1L7QkjKMRi5IUdV8k3k1ucPKixF6nL3vhYt49LIhfFkGC43UNHO2MRhdEw1PQuMZTJLC_EdBVcXY1JA7bksP-NioBjTSG9mLF4yuXu79YQ858oET7BYLJGDnMvtRw5mfb4h3LloBi1QNRkqlrD-XNSLcAulglUkmhiT-PZXnahXwaQlF1jHH-vxfEmcgZenC12l1MuDC22lC8nyql4rGnBBF6G-j6dxosK3DnWOqkctqGq7RYyBNgeUi36GmejxtTAGbZAXQ" alt="User"/>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold">Đơn nghỉ phép mới: Nguyễn Văn An</h4>
+                                <p class="text-sm text-slate-300">Lý do: Việc gia đình. Vui lòng xem xét hồ sơ...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

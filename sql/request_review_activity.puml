@@ -1,0 +1,17 @@
+@startuml
+start
+:Quản lý mở trang "Duyệt yêu cầu";
+:Chọn một đơn cần xem xét;
+:Xem chi tiết tiêu đề, mô tả và tệp đính kèm;
+if (Duyệt hay Từ chối?) then (Duyệt)
+  :Gửi yêu cầu Duyệt (approved=true);
+else (Từ chối)
+  :Nhập lý do từ chối;
+  :Gửi yêu cầu Từ chối (approved=false);
+endif
+:Hệ thống cập nhật trạng thái đơn (APPROVED / REJECTED);
+:Lưu ID người duyệt (Reviewer ID);
+:Thông báo kết quả cho Quản lý;
+:Giao diện tải lại danh sách;
+stop
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Nhân viên" as Employee
+actor "Quản lý" as Manager
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống Quản lý Nhân sự (HRM)" {
+  usecase "Đăng nhập (UC1)" as UC1
+  usecase "Kiểm tra thông tin" as UC_Check
+  usecase "Thông báo lỗi" as UC_Error
+}
+
+Employee --> UC1
+Manager --|> Employee
+Admin --|> Employee
+
+UC1 ..> UC_Check : <<include>>
+UC_Check <.. UC_Error : <<extend>>
+
+note top of UC_Check
+  Hệ thống kiểm tra Username 
+  và Password trong Database 
+  thông qua Spring Security & JWT
+end note
+
+@enduml

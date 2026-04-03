@@ -1,0 +1,20 @@
+@startuml
+start
+:Nhân viên chọn nhiệm vụ trên Kanban;
+if (Nhiệm vụ ở cột Pending?) then (Có)
+  :Nhấn "Chấp nhận" (Accept);
+  :Gửi yêu cầu PUT /api/tasks/{id}/accept;
+  :Hệ thống cập nhật trạng thái -> ACCEPTED;
+else (Không)
+  :Nhấn vào chi tiết nhiệm vụ;
+  :Chọn trạng thái mới (DONE, v.v.);
+  :Nhập ghi chú (nếu có);
+  :Nhấn "Cập nhật";
+  :Gửi yêu cầu PUT /api/tasks/{id}/status;
+  :Hệ thống cập nhật trạng thái mới;
+endif
+:Lưu lịch sử thay đổi (TaskUpdate);
+:Thông báo "Cập nhật thành công";
+:Tải lại bảng Kanban;
+stop
+@enduml

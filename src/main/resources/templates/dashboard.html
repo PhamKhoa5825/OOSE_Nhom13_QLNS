@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:replace="~{layout :: sidebar('dashboard')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative">
+        <!-- Header -->
+        <header th:replace="~{layout :: header}"></header>
+
+        <!-- Page Content -->
+        <div class="p-8 space-y-8">
+            <!-- Hero Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-white tracking-tight">Tổng quan phòng ban hôm nay</h1>
+                    <p class="text-slate-400 mt-1">Theo dõi nhân sự, nhiệm vụ và chấm công theo thời gian thực</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">calendar_today</span>
+                        <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMM, yyyy')}">14 Th05, 2024</span>
+                    </button>
+                    <button class="bg-primary hover:bg-primary/80 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Thêm mới
+                    </button>
+                </div>
+            </div>
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass p-6 rounded-2xl border border-slate-700/50 group hover:border-primary/50 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-primary/10 rounded-lg text-primary">
+                            <span class="material-symbols-outlined">group</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Tổng nhân sự</p>
+                    <h3 class="text-3xl font-bold text-white mt-1 group-hover:text-primary transition-colors" th:text="${dashboard.totalEmployees}">1,248</h3>
+                </div>
+                <div class="glass p-6 rounded-2xl border border-slate-700/50 group hover:border-emerald-500/50 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
+                            <span class="material-symbols-outlined">schedule</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Tỷ lệ đúng giờ</p>
+                    <h3 class="text-3xl font-bold text-white mt-1 group-hover:text-emerald-500 transition-colors" th:text="${dashboard.onTimeRate + '%'}">95%</h3>
+                </div>
+                <div class="glass p-6 rounded-2xl border border-slate-700/50 group hover:border-amber-500/50 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+                            <span class="material-symbols-outlined">task</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Nhiệm vụ đang chạy</p>
+                    <h3 class="text-3xl font-bold text-white mt-1 group-hover:text-amber-500 transition-colors" th:text="${dashboard.activeTasksCount}">42</h3>
+                </div>
+                <div class="glass p-6 rounded-2xl border border-slate-700/50 group hover:border-rose-500/50 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-rose-500/10 rounded-lg text-rose-500">
+                            <span class="material-symbols-outlined">error_outline</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Nhiệm vụ trễ hạn</p>
+                    <h3 class="text-3xl font-bold text-white mt-1 group-hover:text-rose-500 transition-colors" th:text="${dashboard.overdueTasksCount}">07</h3>
+                </div>
+            </div>
+            <!-- Main Grid Row 1: Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-bold text-lg text-white">Attendance Analytics</h4>
+                        <select class="bg-slate-800 border-none rounded-lg text-xs py-1 px-3 text-slate-300">
+                            <option>This Week</option>
+                            <option>This Month</option>
+                        </select>
+                    </div>
+                    <div class="h-64 w-full flex items-end justify-between gap-4 px-4">
+                        <div th:each="rate, iter : ${dashboard.weeklyAttendanceRates}" class="flex-1 bg-slate-800/50 rounded-t-lg relative group overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-primary rounded-t-lg transition-all duration-500" th:style="'height: ' + ${rate} + '%'"></div>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 text-[10px] text-white font-bold" th:text="${rate + '%'}">85%</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-4 px-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        <span th:each="day : ${dashboard.weeklyAttendanceDays}" th:text="${day}">Mon</span>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-2xl flex flex-col">
+                    <h4 class="font-bold text-lg text-white mb-6">Task Status Breakdown</h4>
+                    <div class="flex-1 flex items-center justify-center relative">
+                        <!-- SVG Simple Donut -->
+                        <svg class="w-48 h-48 transform -rotate-90">
+                            <circle class="text-slate-800" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-width="20"></circle>
+                            <circle class="text-primary" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="502" stroke-dashoffset="150" stroke-width="20"></circle>
+                            <circle class="text-amber-500" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="502" stroke-dashoffset="400" stroke-width="20"></circle>
+                        </svg>
+                        <div class="absolute flex flex-col items-center">
+                            <span class="text-3xl font-bold text-white">72%</span>
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Done</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-6">
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1.5 mb-1">
+                                <div class="size-2 rounded-full bg-primary"></div>
+                                <span class="text-xs text-slate-400">Done</span>
+                            </div>
+                            <p class="text-sm font-bold text-white">45</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1.5 mb-1">
+                                <div class="size-2 rounded-full bg-amber-500"></div>
+                                <span class="text-xs text-slate-400">Ongoing</span>
+                            </div>
+                            <p class="text-sm font-bold text-white">28</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1.5 mb-1">
+                                <div class="size-2 rounded-full bg-rose-500"></div>
+                                <span class="text-xs text-slate-400">Overdue</span>
+                            </div>
+                            <p class="text-sm font-bold text-white">12</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 2: Employee List -->
+            <div class="glass rounded-2xl overflow-hidden border border-slate-700/50">
+                <div class="p-6 border-b border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h4 class="font-bold text-lg text-white">Danh sách nhân viên</h4>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input class="bg-slate-800 border-none rounded-lg text-xs py-2 pl-9 pr-4 text-slate-300 w-48" placeholder="Tìm tên..." type="text"/>
+                        </div>
+                        <button class="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-lg">filter_list</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                        <tr class="bg-slate-800/30 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                            <th class="px-6 py-4">Nhân viên</th>
+                            <th class="px-6 py-4">Chức vụ</th>
+                            <th class="px-6 py-4">Trạng thái</th>
+                            <th class="px-6 py-4">Hiệu suất</th>
+                            <th class="px-6 py-4 text-right">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/30">
+                        <tr th:each="emp : ${dashboard.recentEmployees}" class="hover:bg-slate-800/20 transition-colors group">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="size-9 rounded-full bg-slate-700 overflow-hidden border border-slate-600">
+                                        <img alt="Avatar" class="w-full h-full object-cover" th:src="${emp.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + emp.fullName + '&background=6366f1&color=fff'}"/>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-white" th:text="${emp.fullName}">Nguyễn Văn A</p>
+                                        <p class="text-xs text-slate-500" th:text="${emp.email}">nva@manager.pro</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-300" th:text="${emp.position}">Senior UI Designer</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5">
+                                    <div class="size-2 rounded-full" th:classappend="${emp.status == 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-500'}"></div>
+                                    <span class="text-xs font-medium" th:classappend="${emp.status == 'ACTIVE' ? 'text-emerald-400' : 'text-slate-400'}" th:text="${emp.status}">Online</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="w-24 bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-primary h-full" style="width: 80%"></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a th:href="@{'/profile/' + ${emp.id}}" class="text-primary text-xs font-bold hover:underline">Xem chi tiết</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(dashboard.recentEmployees)}">
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-500 text-sm">Chưa có dữ liệu nhân viên</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Row 3: Mini Kanban -->
+            <div>
+                <h4 class="font-bold text-lg text-white mb-4">Quản lý nhiệm vụ (Mini Kanban)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Column Template -->
+                    <div th:each="status : ${T(com.example.qlns.Enum.TaskStatus).values()}" class="space-y-4">
+                        <div class="flex items-center justify-between px-2">
+                            <span class="text-xs font-bold uppercase tracking-widest" 
+                                  th:classappend="${status.name() == 'PENDING' ? 'text-slate-400' : (status.name() == 'ACCEPTED' ? 'text-primary' : (status.name() == 'DONE' ? 'text-emerald-500' : 'text-rose-500'))}"
+                                  th:text="${status.name() + ' (' + dashboard.taskStatusCounts[status.name()] + ')'}">STATUS (0)</span>
+                        </div>
+                        
+                        <div th:each="task : ${dashboard.kanbanTasks}" th:if="${task.status == status.name()}"
+                             class="glass p-4 rounded-xl border-l-4 cursor-pointer hover:bg-slate-800/40 transition-colors"
+                             th:classappend="${status.name() == 'PENDING' ? 'border-l-slate-500' : (status.name() == 'ACCEPTED' ? 'border-l-primary' : (status.name() == 'DONE' ? 'border-l-emerald-500' : 'border-l-rose-500'))}">
+                            <h5 class="text-sm font-bold text-white mb-2" th:text="${task.title}">Task Title</h5>
+                            <p class="text-xs text-slate-500 mb-3 line-clamp-2" th:text="${task.description}">Description</p>
+                            <div class="flex items-center justify-between">
+                                <div class="size-6 rounded-full bg-slate-700 overflow-hidden">
+                                    <img alt="Assignee" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff"/>
+                                </div>
+                                <span class="text-[10px] text-slate-400 flex items-center gap-1" th:text="${task.deadline}">15/05</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 4: Attendance & Approvals -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Attendance -->
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-bold text-lg text-white">Chấm công hôm nay</h4>
+                        <span class="text-xs font-bold text-rose-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">person_off</span>
+                            5 vắng mặt
+                        </span>
+                    </div>
+                    <div class="space-y-3">
+                        <div th:each="att : ${dashboard.todayAttendance}" class="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer"
+                             th:classappend="${att.status == 'ON_TIME' ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20' : (att.status == 'LATE' ? 'bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20' : 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20')}">
+                            <div class="flex items-center gap-3">
+                                <div class="size-8 rounded-full bg-slate-700 overflow-hidden">
+                                    <img alt="User" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff"/>
+                                </div>
+                                <span class="text-sm font-medium text-white" th:text="${att.employeeName}">Employee Name</span>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase" 
+                                  th:classappend="${att.status == 'ON_TIME' ? 'text-emerald-400' : (att.status == 'LATE' ? 'text-amber-400' : 'text-rose-400')}"
+                                  th:text="${att.status + (att.checkIn != null ? ' (' + att.checkIn + ')' : '')}">STATUS</span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(dashboard.todayAttendance)}" class="p-4 text-center text-slate-500 text-sm">Chưa có ai chấm công hôm nay</div>
+                    </div>
+                    <button class="w-full mt-4 py-2 text-xs font-bold text-slate-500 hover:text-white transition-colors border-t border-slate-700/50 pt-4 uppercase tracking-widest">Xem tất cả lịch sử</button>
+                </div>
+                <!-- Request Approval -->
+                <div class="glass p-6 rounded-2xl">
+                    <h4 class="font-bold text-lg text-white mb-6">Duyệt đơn từ</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <tbody class="divide-y divide-slate-700/30">
+                            <tr th:each="req : ${dashboard.pendingRequests}" class="group">
+                                <td class="py-3 pr-4">
+                                    <p class="text-sm font-semibold text-white" th:text="${req.employeeName}">Employee Name</p>
+                                    <p class="text-[10px] text-slate-500 uppercase tracking-tighter" th:text="${req.title}">Title</p>
+                                </td>
+                                <td class="py-3">
+                                    <span class="px-2 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/20">Chờ duyệt</span>
+                                </td>
+                                <td class="py-3 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a th:href="@{/approvals}" class="size-8 rounded-lg bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(dashboard.pendingRequests)}">
+                                <td colspan="3" class="py-8 text-center text-slate-500 text-sm">Không có đơn cần duyệt</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Row 5: Notifications -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-bold text-lg text-white">Thông báo mới nhất</h4>
+                    <button class="text-xs text-primary font-bold hover:underline">Đánh dấu tất cả đã đọc</button>
+                </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Cảnh báo deadline</p>
+                                <p class="text-xs text-slate-400 mt-1">Dự án Alpha còn 2 ngày nữa là đến hạn hoàn tất.</p>
+                                <span class="text-[10px] text-slate-500 mt-2 block">4 giờ trước</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

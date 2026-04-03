@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>HR Manager Pro - Đăng ký</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4e8ce4",
+                        "background-dark": "#121821",
+                        "slate-card": "#1e2632",
+                        "slate-border": "#2d3949"
+                    },
+                    fontFamily: { "display": ["Inter", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30, 38, 50, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .bg-gradient-mesh {
+            background-color: #121821;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(217,100%,15%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(217,70%,30%,1) 0, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(217,100%,15%,1) 0, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(217,70%,30%,1) 0, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-mesh text-slate-100 min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-500">
+        <!-- Logo -->
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/40 mb-6">
+                <span class="material-symbols-outlined text-4xl">person_add</span>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight">Tham gia HR Pro</h1>
+            <p class="text-slate-400 mt-2 font-medium">Đăng ký tài khoản để bắt đầu</p>
+        </div>
+
+        <!-- Registration Card -->
+        <div class="glass p-8 rounded-3xl shadow-2xl space-y-6">
+            <form id="registerForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Họ và tên</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">badge</span>
+                        <input id="fullName" type="text" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="Nguyễn Văn A">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">mail</span>
+                        <input id="email" type="email" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="vi-du@congty.com">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Số điện thoại</label>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">phone</span>
+                            <input id="phone" type="tel" class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="090...">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Ngày sinh</label>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">calendar_month</span>
+                            <input id="dateOfBirth" type="date" class="w-full bg-background-dark/50 border-slate-border border-2 rounded-12 pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all text-slate-400" style="color-scheme: dark;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Địa chỉ</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">location_on</span>
+                        <input id="address" type="text" class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="Số nhà, đường, quận/huyện...">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Giới tính</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">wc</span>
+                        <select id="gender" class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-4 py-3 focus:border-primary focus:ring-0 outline-none transition-all appearance-none text-slate-400">
+                            <option value="MALE">Nam</option>
+                            <option value="FEMALE">Nữ</option>
+                            <option value="OTHER">Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Mật khẩu</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">lock</span>
+                        <input id="password" type="password" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-12 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Xác nhận mật khẩu</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">lock_reset</span>
+                        <input id="confirmPassword" type="password" required class="w-full bg-background-dark/50 border-slate-border border-2 rounded-2xl pl-12 pr-12 py-3 focus:border-primary focus:ring-0 outline-none transition-all placeholder-slate-600" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-primary hover:bg-sky-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
+                    <span>ĐĂNG KÝ NGAY</span>
+                    <span class="material-symbols-outlined text-xl">how_to_reg</span>
+                </button>
+            </form>
+
+            <div id="statusMessage" class="hidden animate-in slide-in-from-top-2 duration-300">
+                <div id="statusBox" class="p-4 rounded-2xl flex items-center gap-3 text-sm font-medium">
+                    <span id="statusIcon" class="material-symbols-outlined text-xl">info</span>
+                    <p id="statusText">Thông báo</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-slate-500 text-sm font-medium">
+            Đã có tài khoản? <a th:href="@{/login}" class="text-primary font-bold hover:underline">Đăng nhập</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const gender = document.getElementById('gender').value;
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            const statusDiv = document.getElementById('statusMessage');
+            const statusBox = document.getElementById('statusBox');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+
+            statusDiv.classList.add('hidden');
+
+            if (password !== confirmPassword) {
+                showStatus('Mật khẩu xác nhận không khớp!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        fullName, 
+                        email, 
+                        password, 
+                        phone, 
+                        address, 
+                        gender, 
+                        dateOfBirth: dateOfBirth || null 
+                    })
+                });
+
+                if (response.ok) {
+                    showStatus('Đăng ký thành công! Đang chuyển hướng...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showStatus(error.message || 'Đăng ký thất bại!', 'error');
+                }
+            } catch (err) {
+                showStatus('Lỗi kết nối server!', 'error');
+            }
+        });
+
+        function showStatus(text, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            const statusBox = document.getElementById('statusBox');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+
+            statusText.innerText = text;
+            statusDiv.classList.remove('hidden');
+
+            if (type === 'error') {
+                statusBox.className = 'bg-rose-500/10 border border-rose-500/20 text-rose-500 p-4 rounded-2xl flex items-center gap-3 text-sm font-medium';
+                statusIcon.innerText = 'error';
+            } else {
+                statusBox.className = 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-4 rounded-2xl flex items-center gap-3 text-sm font-medium';
+                statusIcon.innerText = 'check_circle';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+actor "Người dùng mới" as Guest
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Đăng ký tài khoản" as UC_Register
+}
+
+Guest --> UC_Register
+@enduml

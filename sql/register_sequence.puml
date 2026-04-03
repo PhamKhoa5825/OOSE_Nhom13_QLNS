@@ -1,0 +1,25 @@
+@startuml
+actor "Người dùng mới" as NewUser
+participant "Browser (register.html)" as Frontend
+participant "AuthViewController" as ViewController
+participant "AuthController" as APIController
+participant "AuthService" as Service
+database "Database" as DB
+
+NewUser -> ViewController : GET /register
+ViewController -> Frontend : Trả về trang đăng ký
+NewUser -> Frontend : Nhập thông tin & Nhấn Đăng ký
+Frontend -> Frontend : Kiểm tra mật khẩu xác nhận
+alt Mật khẩu không khớp
+    Frontend -> NewUser : Hiển thị lỗi mật khẩu
+else Mật khẩu khớp
+    Frontend -> APIController : POST /api/auth/register (DTO)
+    APIController -> Service : register(UserRegistrationRequest)
+    Service -> DB : Lưu mới User & Employee
+    DB --> Service : OK
+    Service --> APIController : AuthenticationResponse
+    APIController --> Frontend : HTTP 201 Created (JSON)
+    Frontend -> NewUser : Hiển thị "Đăng ký thành công"
+    Frontend -> NewUser : Chuyển hướng sang /login
+end
+@enduml

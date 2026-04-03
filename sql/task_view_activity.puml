@@ -1,0 +1,15 @@
+@startuml
+start
+:Nhân viên mở trang "Nhiệm vụ";
+:Hệ thống gọi API GET /api/tasks/my/{empId};
+:Backend truy vấn danh sách Task từ Database;
+:Trả về danh sách Task (JSON);
+:Frontend nhận dữ liệu;
+:Phân loại Task vào các cột Kanban:
+- Chờ xử lý (PENDING)
+- Đang thực hiện (ACCEPTED)
+- Đã hoàn thành (DONE)
+- Quá hạn (OVERDUE);
+:Hiển thị danh sách Task lên màn hình;
+stop
+@enduml

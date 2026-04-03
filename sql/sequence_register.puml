@@ -1,0 +1,51 @@
+@startuml
+title Sequence: Đăng ký tài khoản mới
+actor "Người dùng mới" as Guest
+boundary "Giao diện (register.html)" as UI
+control "AuthController" as Ctrl
+control "AuthService" as Svc
+entity "UserRepository" as Repo
+control "JwtService" as JWT
+database "MySQL" as DB
+
+Guest -> UI : Nhập email, username, password
+Guest -> UI : Nhấn **Đăng ký**
+UI -> Ctrl : POST /api/auth/register\n(UserRegistrationRequest)
+activate Ctrl
+
+Ctrl -> Svc : register(request)
+activate Svc
+
+Svc -> Repo : existsByUsername(username)
+Repo -> DB : SELECT COUNT(*)\nWHERE username = ?
+DB --> Repo : count
+Repo --> Svc : true / false
+
+alt Username đã tồn tại
+    Svc --> Ctrl : Throw DuplicateException
+    Ctrl --> UI : 409 Conflict
+    UI --> Guest : "Username đã được sử dụng"
+else Username chưa tồn tại
+    Svc -> Repo : existsByEmail(email)
+    Repo -> DB : SELECT COUNT(*)\nWHERE email = ?
+    DB --> Repo : count
+
+    alt Email đã tồn tại
+        Svc --> Ctrl : Throw DuplicateException
+        Ctrl --> UI : 409 Conflict
+        UI --> Guest : "Email đã được sử dụng"
+    else Hợp lệ
+        Svc -> Svc : BCrypt.encode(password)
+        Svc -> Repo : save(new User)\n{role=EMPLOYEE, status=INACTIVE}
+        Repo -> DB : INSERT INTO users ...
+        DB --> Repo : saved User
+        Svc -> JWT : generateToken()
+        JWT --> Svc : JWT token
+        Svc --> Ctrl : AuthResponse {token, userId}
+        deactivate Svc
+        Ctrl --> UI : 200 OK
+        deactivate Ctrl
+        UI -> Guest : Redirect → /waiting-approval
+    end
+end
+@enduml

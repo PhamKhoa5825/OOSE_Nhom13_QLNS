@@ -1,0 +1,46 @@
+@startuml
+title Sequence: Xem nhiệm vụ (Kanban)
+actor "Nhân viên" as Emp
+participant "Browser\n(tasks.html)" as UI
+participant "JwtAuthentication\nFilter" as Filter
+participant "TaskController" as Ctrl
+participant "TaskServiceImpl" as Svc
+participant "TaskRepository" as Repo
+participant "TaskMapper" as Mapper
+database "MySQL" as DB
+
+Emp -> UI : Truy cập trang /tasks
+UI -> Filter : GET /api/tasks/my/{empId}\n+ Header: Bearer JWT
+activate Filter
+Filter -> Filter : extractJwt() → validateToken()
+Filter -> Filter : Set SecurityContext
+Filter --> Ctrl : Authenticated request
+deactivate Filter
+
+activate Ctrl
+Ctrl -> Svc : getMyTasks(empId)
+activate Svc
+
+Svc -> Repo : findByAssignedToId(empId)
+Repo -> DB : SELECT * FROM tasks\nWHERE assigned_to = ?
+DB --> Repo : List<Task>
+Repo --> Svc : List<Task> entities
+
+Svc -> Mapper : toDTO() cho từng Task
+note right
+  Mapper flatten:
+  assignedBy.fullName → assignedByName
+  assignedTo.fullName → assignedToName
+  priority (Enum) → String
+  deadline (DateTime) → String
+end note
+Mapper --> Svc : List<TaskDTO>
+
+Svc --> Ctrl : List<TaskDTO>
+deactivate Svc
+Ctrl --> UI : JSON Response
+deactivate Ctrl
+
+UI -> UI : JavaScript phân loại\nvào 4 cột Kanban:\nPENDING | ACCEPTED | DONE | OVERDUE
+UI --> Emp : Hiển thị bảng Kanban
+@enduml

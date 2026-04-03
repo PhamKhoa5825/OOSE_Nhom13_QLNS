@@ -1,0 +1,28 @@
+@startuml
+actor "Nhân viên" as Employee
+participant "Browser (profile.html)" as Frontend
+participant "HomeViewController" as Controller
+participant "EmployeeService" as Service
+participant "SecurityService" as Security
+database "Database" as DB
+
+Employee -> Controller : GET /profile/{id}
+Controller -> Service : getById(id)
+Service -> DB : Tìm kiếm Employee
+DB --> Service : Dữ liệu Employee
+alt Không tìm thấy
+    Service --> Controller : null
+    Controller -> Employee : Chuyển hướng về /employees
+else Tìm thấy
+    Service -> DB : Lấy chi tiết (Department, Manager)
+    DB --> Service : Dữ liệu chi tiết
+    Service --> Controller : EmployeeDetailDTO
+    Controller -> Security : isAdmin()
+    Security --> Controller : true/false
+    Controller -> Security : getCurrentUserId()
+    Security --> Controller : userId
+    Controller -> Controller : Xác định isOwner
+    Controller --> Frontend : Trả về View với (emp, isAdmin, isOwner)
+    Frontend -> Employee : Hiển thị chi tiết hồ sơ
+end
+@enduml

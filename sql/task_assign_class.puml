@@ -1,0 +1,59 @@
+@startuml
+class TaskController {
+  -taskService: TaskService
+  +create(req: CreateTaskRequest): ResponseEntity
+}
+
+class TaskService {
+  -taskRepository: TaskRepository
+  -employeeRepository: EmployeeRepository
+  +createTask(req: CreateTaskRequest): TaskDTO
+}
+
+class CreateTaskRequest {
+  -title: String
+  -description: String
+  -priority: String
+  -deadline: String
+  -assignedToId: Long
+  -assignedById: Long
+  +getTitle(): String
+  +getAssignedToId(): Long
+}
+
+class TaskDTO {
+  -id: Long
+  -title: String
+  -status: TaskStatus
+}
+
+class Task {
+  -id: Long
+  -title: String
+  -status: TaskStatus
+  -priority: Priority
+  -assignedTo: Employee
+  -assignedBy: Employee
+}
+
+enum TaskStatus {
+  PENDING
+  ACCEPTED
+  DONE
+  OVERDUE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+TaskController o-- TaskService
+TaskService ..> CreateTaskRequest : "Nhận dữ liệu"
+TaskService ..> TaskDTO : "Trả về"
+TaskService ..> Task : "Tạo mới"
+Task o-- TaskStatus
+Task o-- Priority
+@enduml

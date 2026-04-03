@@ -1,0 +1,45 @@
+@startuml
+class EmployeeController {
+  -empService: EmployeeService
+  -securityService: SecurityService
+  +approve(id: Long, deptId: Long, role: String): ResponseEntity
+  +updateStatus(id: Long, status: String): ResponseEntity
+}
+
+class EmployeeService {
+  -userRepository: UserRepository
+  -employeeRepository: EmployeeRepository
+  +approveEmployee(id: Long, deptId: Long, role: String): void
+  +updateUserStatus(employeeId: Long, status: String): void
+}
+
+class SecurityService {
+  +isAdmin(): boolean
+}
+
+class User {
+  -id: Long
+  -email: String
+  -role: Role
+  -status: UserStatus
+  +setStatus(status: UserStatus): void
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+EmployeeController o-- EmployeeService
+EmployeeController o-- SecurityService
+EmployeeService ..> User : "Cập nhật"
+User o-- Role
+User o-- UserStatus
+@enduml

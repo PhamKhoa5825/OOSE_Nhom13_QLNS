@@ -1,0 +1,197 @@
+@startuml
+' ============================================================
+' QLNS - USE CASE TỔNG QUAN
+' Hệ thống Quản Lý Nhân Sự (HRMS)
+' Theo đúng mẫu thiết kế đã duyệt
+' ============================================================
+
+top to bottom direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+skinparam usecase {
+    BackgroundColor<<auth>>     #FFFDE7
+    BorderColor<<auth>>         #C9B458
+    BackgroundColor<<employee>> #E8F5E9
+    BorderColor<<employee>>     #66BB6A
+    BackgroundColor<<manager>>  #EDE7F6
+    BorderColor<<manager>>      #7E57C2
+    BackgroundColor<<admin>>    #FCE4EC
+    BorderColor<<admin>>        #E57373
+    BackgroundColor<<ext>>      #FFFFFF
+    BorderColor<<ext>>          #BDBDBD
+}
+
+skinparam package {
+    BackgroundColor<<authpkg>>     #FFFDE7
+    BorderColor<<authpkg>>         #C9B458
+    BackgroundColor<<attpkg>>      #E3F2FD
+    BorderColor<<attpkg>>          #42A5F5
+    BackgroundColor<<reqpkg>>      #FFF3E0
+    BorderColor<<reqpkg>>          #FFA726
+    BackgroundColor<<notipkg>>     #F3E5F5
+    BorderColor<<notipkg>>         #AB47BC
+    BackgroundColor<<taskpkg>>     #E8F5E9
+    BorderColor<<taskpkg>>         #66BB6A
+    BackgroundColor<<mgrpkg>>      #EDE7F6
+    BorderColor<<mgrpkg>>          #7E57C2
+    BackgroundColor<<adminpkg>>    #FCE4EC
+    BorderColor<<adminpkg>>        #E57373
+}
+
+' ── ACTORS ──────────────────────────────────────────────────
+actor "Người dùng mới\n(Guest)" as Guest
+actor "Nhân viên\n(Employee)" as Employee
+actor "Trưởng phòng\n(Manager)" as Manager
+actor "Quản trị viên\n(Admin)" as Admin
+
+' ── HỆ THỐNG ───────────────────────────────────────────────
+rectangle "Hệ thống Quản lý Nhân sự (HRMS)" {
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 1: XÁC THỰC & TÀI KHOẢN
+    ' ══════════════════════════════════════════════
+    package "Xác thực & Tài khoản" {
+        usecase "Đăng ký tài khoản\n(UC0)"              as UC0  <<auth>>
+        usecase "Đăng nhập\n(UC1)"                       as UC1  <<auth>>
+        usecase "Đăng xuất\n(UC2)"                       as UC2  <<auth>>
+        usecase "Xem thông tin cá nhân\n(UC3)"           as UC3  <<auth>>
+        usecase "Đổi mật khẩu\n(UC4)"                   as UC4  <<auth>>
+        usecase "Kiểm tra thông tin\nđăng nhập"          as UC_Check <<ext>>
+        usecase "Thông báo lỗi"                          as UC_Error <<ext>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 2: CHẤM CÔNG
+    ' ══════════════════════════════════════════════
+    package "Chấm công" {
+        usecase "Chấm công\n(Check-in / Check-out)\n(UC6)" as UC6  <<employee>>
+        usecase "Xem lịch sử chấm công\n(UC7)"            as UC7  <<employee>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 3: ĐƠN YÊU CẦU
+    ' ══════════════════════════════════════════════
+    package "Đơn yêu cầu" {
+        usecase "Gửi đơn yêu cầu\n(UC8)"                as UC8  <<employee>>
+        usecase "Theo dõi trạng thái đơn\n(UC9)"        as UC9  <<employee>>
+        usecase "Gửi đơn làm thêm giờ (OT)"             as UC_OT   <<ext>>
+        usecase "Gửi đơn nghỉ phép"                     as UC_Leave <<ext>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 4: THÔNG BÁO & CHAT
+    ' ══════════════════════════════════════════════
+    package "Thông báo" {
+        usecase "Xem thông báo\n(UC5)"                  as UC5  <<employee>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 5: NHIỆM VỤ (TASK)
+    ' ══════════════════════════════════════════════
+    package "Nhiệm vụ (Task)" {
+        usecase "Xem nhiệm vụ được giao\n(UC10)"        as UC10 <<employee>>
+        usecase "Cập nhật trạng thái\nnhiệm vụ\n(UC11)" as UC11 <<employee>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 6: QUẢN LÝ PHÒNG BAN (Manager)
+    ' ══════════════════════════════════════════════
+    package "Quản lý phòng ban" {
+        usecase "Quản lý NV phòng ban\n(UC12)"          as UC12 <<manager>>
+        usecase "Xem bảng công phòng ban\n(UC13)"       as UC13 <<manager>>
+        usecase "Phê duyệt đơn yêu cầu\n(UC14)"        as UC14 <<manager>>
+        usecase "Giao nhiệm vụ\n(UC15)"                 as UC15 <<manager>>
+        usecase "Xem Dashboard phòng ban\n(UC16)"        as UC16 <<manager>>
+        usecase "Từ chối đơn"                            as UC_Reject  <<ext>>
+        usecase "Chấp nhận đơn"                          as UC_Accept  <<ext>>
+    }
+
+    ' ══════════════════════════════════════════════
+    ' NHÓM 7: QUẢN TRỊ HỆ THỐNG (Admin)
+    ' ══════════════════════════════════════════════
+    package "Quản trị hệ thống" {
+        usecase "Quản lý người dùng\n(UC17)"            as UC17 <<admin>>
+        usecase "Quản lý phòng ban\n(UC18)"             as UC18 <<admin>>
+        usecase "Xem bảng công toàn CTy\n(UC19)"        as UC19 <<admin>>
+        usecase "Xem Dashboard hệ thống\n(UC20)"        as UC20 <<admin>>
+        usecase "Khóa / Mở khóa\ntài khoản"             as UC_Lock    <<ext>>
+        usecase "Duyệt người dùng mới"                  as UC_ApproveUser <<ext>>
+    }
+}
+
+' ══════════════════════════════════════════════════════════
+' LIÊN KẾT ACTOR → USE CASE
+' ══════════════════════════════════════════════════════════
+
+' ── Guest ──────────────────────────────────────────────────
+Guest --> UC0
+
+' ── Employee ───────────────────────────────────────────────
+Employee --> UC1
+Employee --> UC2
+Employee --> UC3
+Employee --> UC4
+Employee --> UC6
+Employee --> UC7
+Employee --> UC8
+Employee --> UC9
+Employee --> UC5
+Employee --> UC10
+Employee --> UC11
+
+' ── Manager ────────────────────────────────────────────────
+Manager --> UC12
+Manager --> UC13
+Manager --> UC14
+Manager --> UC15
+Manager --> UC16
+
+' ── Admin ──────────────────────────────────────────────────
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+
+' ══════════════════════════════════════════════════════════
+' QUAN HỆ GIỮA CÁC USE CASE
+' ══════════════════════════════════════════════════════════
+
+' Đăng nhập include kiểm tra thông tin
+UC1 ..> UC_Check : <<include>>
+
+' Kiểm tra thông tin extend thông báo lỗi
+UC_Check ..> UC_Error : <<extend>>
+
+' Gửi đơn yêu cầu extend ra OT và Nghỉ phép
+UC8 <|-- UC_OT
+UC8 <|-- UC_Leave
+
+' Phê duyệt đơn include Từ chối / Chấp nhận
+UC14 ..> UC_Reject : <<include>>
+UC14 ..> UC_Accept : <<include>>
+
+' Quản lý người dùng extend Khóa/Mở khóa và Duyệt mới
+UC17 <|-- UC_Lock
+UC17 <|-- UC_ApproveUser
+
+' ══════════════════════════════════════════════════════════
+' KẾ THỪA QUYỀN GIỮA CÁC ACTOR
+' ══════════════════════════════════════════════════════════
+Employee <|-- Manager
+Manager <|-- Admin
+
+' ══════════════════════════════════════════════════════════
+' GHI CHÚ PHÂN QUYỀN
+' ══════════════════════════════════════════════════════════
+note bottom of Admin
+    **Phân quyền kế thừa:**
+    Admin kế thừa Manager
+    Manager kế thừa Employee
+
+    Admin có toàn quyền.
+    Manager = Employee + quản lý PB.
+end note
+
+@enduml

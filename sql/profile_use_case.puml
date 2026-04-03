@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+actor "Nhân viên" as Employee
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Xem thông tin cá nhân" as UC_ViewProfile
+}
+
+Employee --> UC_ViewProfile
+@enduml

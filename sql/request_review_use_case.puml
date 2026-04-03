@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor "Quản lý / Admin" as Reviewer
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Phê duyệt đơn yêu cầu" as UC_ReviewRequest
+  usecase "Chấp nhận" as UC_Approve
+  usecase "Từ chối" as UC_Reject
+}
+
+Reviewer --> UC_ReviewRequest
+UC_ReviewRequest ..> UC_Approve : <<include>>
+UC_ReviewRequest ..> UC_Reject : <<include>>
+@enduml

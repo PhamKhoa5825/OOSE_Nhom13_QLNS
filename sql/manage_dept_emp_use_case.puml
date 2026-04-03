@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+actor "Trưởng phòng" as Manager
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Quản lý nhân viên phòng ban" as UC_ManageDeptEmployees
+}
+
+Manager --> UC_ManageDeptEmployees
+@enduml

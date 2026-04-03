@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor "Quản trị viên (Admin)" as Admin
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Quản lý người dùng" as UC_UserMgmt
+  usecase "Duyệt người dùng mới" as UC_ApproveUser
+  usecase "Khóa / Mở khóa tài khoản" as UC_LockUnlock
+}
+
+Admin --> UC_UserMgmt
+UC_UserMgmt <|-- UC_ApproveUser
+UC_UserMgmt <|-- UC_LockUnlock
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+title Activity: Duyệt NV mới
+start
+
+'== Duyệt nhân viên mới (Admin) ==
+:Admin mở /employees;
+:Lọc nhân viên status = **INACTIVE**;
+:Nhấn nút **"Duyệt"** trên NV mới;
+:Chọn phòng ban (deptId) và vai trò (role);
+:PUT /api/employees/{id}/approve
+?deptId=X&role=Y;
+
+:EmployeeServiceImpl.approveEmployee();
+:employee.setDepartment(dept);
+:employee.setStatus(**ACTIVE**);
+:empRepo.save(employee);
+:user.setStatus(**ACTIVE**);
+:user.setRole(role);
+:userRepo.save(user);
+:Thông báo "Đã duyệt thành công";
+:NV mới có thể đăng nhập hệ thống;
+
+stop
+@enduml

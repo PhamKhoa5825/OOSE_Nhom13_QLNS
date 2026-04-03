@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:replace="~{layout :: sidebar('employees')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative custom-scrollbar">
+        <!-- Header -->
+        <header th:replace="~{layout :: header}"></header>
+
+        <!-- Page Content -->
+        <div class="p-8 flex flex-col gap-8">
+            <!-- Page Title Area -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Quản lý nhân sự</h1>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1">Danh sách <span class="font-bold text-primary" th:text="${totalEmployees}">1,248</span> nhân viên hiện tại trong hệ thống</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 text-white font-semibold hover:bg-slate-700 dark:hover:bg-slate-600 transition-all border border-slate-700">
+                        <span class="material-symbols-outlined text-lg">download</span>
+                        Xuất báo cáo (CSV)
+                    </button>
+                    <button th:if="${isAdmin}" class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all">
+                        <span class="material-symbols-outlined text-lg">person_add</span>
+                        Thêm nhân viên mới
+                    </button>
+                </div>
+            </div>
+            <!-- Filters -->
+            <form th:action="@{/employees}" method="get" class="glass-card rounded-2xl p-6 flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[240px]">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tìm kiếm nhân viên</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                        <input name="kw" th:value="${kw}" class="w-full bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-xl pl-10 py-2.5 text-sm focus:ring-primary focus:border-primary" placeholder="Tên, email hoặc ID nhân viên..." type="text"/>
+                    </div>
+                </div>
+                <div class="w-full md:w-48" th:if="${isAdmin}">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Phòng ban</label>
+                    <select name="deptId" class="w-full bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-xl py-2.5 text-sm focus:ring-primary focus:border-primary">
+                        <option value="">Tất cả phòng ban</option>
+                        <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}" th:selected="${dept.id == selectedDeptId}">UI/UX Design</option>
+                    </select>
+                </div>
+                <div class="w-full md:w-40">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Trạng thái</label>
+                    <select class="w-full bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-xl py-2.5 text-sm focus:ring-primary focus:border-primary">
+                        <option>Trực tuyến</option>
+                        <option>Ngoại tuyến</option>
+                        <option>Vắng mặt</option>
+                    </select>
+                </div>
+                <button type="submit" class="h-[42px] px-6 flex items-center justify-center bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all">
+                    Lọc dữ liệu
+                </button>
+            </form>
+            <div th:if="${employees.empty}" class="glass-card p-12 text-center rounded-2xl">
+                <span class="material-symbols-outlined text-6xl text-slate-400 mb-4">search_off</span>
+                <h3 class="text-xl font-bold">Không tìm thấy nhân viên</h3>
+                <p class="text-slate-500 mt-2">Vui lòng thử lại với từ khóa khác hoặc phòng ban khác.</p>
+                <a th:href="@{/employees}" class="mt-6 inline-block text-primary font-bold hover:underline">Xóa bộ lọc</a>
+            </div>
+            <!-- Employee Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Employee Cards -->
+                <div th:each="emp : ${employees}" class="glass-card rounded-2xl p-6 relative group hover:ring-2 hover:ring-primary/50 transition-all duration-300">
+                    <div th:class="${emp.userStatus == 'ACTIVE' ? 'bg-green-500/10 text-green-500' : (emp.userStatus == 'INACTIVE' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500')} + ' absolute top-6 right-6 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter'">
+                        <span th:class="${emp.userStatus == 'ACTIVE' ? 'bg-green-500 animate-pulse' : (emp.userStatus == 'INACTIVE' ? 'bg-amber-500' : 'bg-rose-500')} + ' w-1.5 h-1.5 rounded-full'"></span>
+                        <span th:text="${emp.userStatus}">ACTIVE</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <a th:href="@{'/profile/' + ${emp.id}}" class="relative group block">
+                            <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-md group-hover:scale-105 transition-transform duration-300 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                <img th:if="${emp.avatarUrl}" th:src="${emp.avatarUrl}" alt="Avatar" class="w-full h-full object-cover">
+                                <span th:unless="${emp.avatarUrl}" class="text-xl font-bold text-slate-400" th:text="${#strings.substring(emp.fullName,0,1)}">A</span>
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800"
+                                 th:classappend="${emp.userStatus == 'ACTIVE' ? 'bg-green-500' : 'bg-slate-400'}"></div>
+                        </a>
+                        <div class="flex-1 min-w-0">
+                            <a th:href="@{'/profile/' + ${emp.id}}" class="block group">
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors" th:text="${emp.fullName}">Tên nhân viên</h3>
+                            </a>
+                            <p class="text-sm text-primary font-medium" th:text="${emp.position}">Senior UI/UX Designer</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Phòng: <span th:text="${emp.departmentName != null ? emp.departmentName : 'N/A'}">Creative Lab</span></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-border-dark mb-6">
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Ngày gia nhập</p>
+                            <p class="text-sm font-semibold" th:text="${emp.joinDate}">12 Th05, 2021</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Vai trò</p>
+                            <p th:text="${emp.role}" class="text-sm font-semibold text-primary">ADMIN</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <!-- Nút Duyệt cho tài khoản INACTIVE (Chỉ Admin) -->
+                        <button th:if="${isAdmin and emp.userStatus == 'INACTIVE'}" 
+                                th:data-id="${emp.id}"
+                                th:data-name="${emp.fullName}"
+                                onclick="openApproveModal(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+                                class="flex-1 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-colors flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">verified</span>
+                            Duyệt
+                        </button>
+                        
+                        <a th:if="${emp.userStatus != 'INACTIVE'}" 
+                           th:href="@{'/profile/' + ${emp.id}}"
+                           class="flex-1 py-2 rounded-xl bg-slate-800 dark:bg-slate-700 text-slate-200 text-xs font-bold hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors border border-slate-700 text-center">Xem hồ sơ</a>
+                        
+                        <!-- Nút Chỉnh sửa (Chỉ Admin) -->
+                        <button th:if="${isAdmin}" 
+                                class="px-3 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                th:data-id="${emp.id}"
+                                onclick="openEditModal(this.getAttribute('data-id'))">
+                            <span class="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        
+                        <!-- Nút Khóa/Mở cho Admin (Chỉ Admin) -->
+                        <button th:if="${isAdmin and emp.userStatus == 'ACTIVE'}" 
+                                th:data-id="${emp.id}"
+                                onclick="updateUserStatus(this.getAttribute('data-id'), 'LOCKED')"
+                                class="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors" title="Khóa tài khoản">
+                            <span class="material-symbols-outlined text-sm">lock</span>
+                        </button>
+                        <button th:if="${isAdmin and emp.userStatus == 'LOCKED'}" 
+                                th:data-id="${emp.id}"
+                                onclick="updateUserStatus(this.getAttribute('data-id'), 'ACTIVE')"
+                                class="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors" title="Mở khóa tài khoản">
+                            <span class="material-symbols-outlined text-sm">lock_open</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Pagination -->
+            <div class="flex items-center justify-between py-6 border-t border-slate-200 dark:border-border-dark mt-auto">
+                <p class="text-sm text-slate-500">Hiển thị <span class="font-bold text-slate-900 dark:text-white" th:text="${employees.size()}">6</span> trên <span class="font-bold text-slate-900 dark:text-white" th:text="${totalElements}">1,248</span> nhân viên</p>
+                <div class="flex items-center gap-2" th:if="${totalPages > 0}">
+                    <!-- Previous Page -->
+                    <a th:href="@{/employees(kw=${kw}, deptId=${selectedDeptId}, page=${currentPage - 1})}"
+                       th:class="${currentPage == 0 ? 'pointer-events-none opacity-50' : ''} + ' w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-surface-dark text-slate-500 hover:text-primary transition-colors'">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+
+                    <!-- Page Numbers -->
+                    <div class="flex items-center gap-2">
+                        <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                           th:href="@{/employees(kw=${kw}, deptId=${selectedDeptId}, page=${pageNum})}"
+                           th:text="${pageNum + 1}"
+                           th:class="${pageNum == currentPage ? 'bg-primary text-white font-bold' : 'hover:bg-slate-100 dark:hover:bg-surface-dark font-medium'} + ' w-10 h-10 flex items-center justify-center rounded-xl transition-colors'">
+                           1
+                        </a>
+                    </div>
+
+                    <!-- Next Page -->
+                    <a th:href="@{/employees(kw=${kw}, deptId=${selectedDeptId}, page=${currentPage + 1})}"
+                       th:class="${currentPage + 1 >= totalPages ? 'pointer-events-none opacity-50' : ''} + ' w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-surface-dark text-slate-500 hover:text-primary transition-colors'">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Phê Duyệt -->
+        <div id="approveModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-sm">
+            <div class="glass-card w-full max-w-lg rounded-3xl p-8 animate-in zoom-in duration-300">
+                <h2 class="text-2xl font-black mb-2">Phê duyệt nhân viên</h2>
+                <p class="text-slate-400 text-sm mb-8">Kích hoạt tài khoản cho <span id="approveName" class="text-primary font-bold"></span></p>
+                
+                <input type="hidden" id="approveId">
+                
+                <div class="space-y-6 text-left">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Phòng ban</label>
+                        <select id="approveDeptId" class="w-full bg-slate-800 border-slate-700 rounded-xl py-3 focus:ring-primary focus:border-primary">
+                            <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}">Phòng ban</option>
+                        </select>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase tracking-widest text-slate-500">Quyền hạn</label>
+                        <select id="approveRole" class="w-full bg-slate-800 border-slate-700 rounded-xl py-3 focus:ring-primary focus:border-primary">
+                            <option value="EMPLOYEE">Nhân viên (EMPLOYEE)</option>
+                            <option value="MANAGER">Trưởng phòng (MANAGER)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-10">
+                    <button onclick="closeApproveModal()" class="flex-1 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold transition-all text-sm uppercase tracking-wider">Hủy</button>
+                    <button onclick="confirmApprove()" class="flex-1 py-4 rounded-2xl bg-primary hover:bg-sky-500 text-white font-bold transition-all text-sm uppercase tracking-wider">Xác nhận duyệt</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openApproveModal(id, name) {
+                document.getElementById('approveId').value = id;
+                document.getElementById('approveName').innerText = name;
+                document.getElementById('approveModal').classList.remove('hidden');
+            }
+
+            function closeApproveModal() {
+                document.getElementById('approveModal').classList.add('hidden');
+            }
+
+            async function confirmApprove() {
+                const id = document.getElementById('approveId').value;
+                const deptId = document.getElementById('approveDeptId').value;
+                const role = document.getElementById('approveRole').value;
+
+                try {
+                    const response = await fetch(`/api/employees/${id}/approve?deptId=${deptId}&role=${role}`, {
+                        method: 'PUT'
+                    });
+
+                    if (response.ok) {
+                        alert('Đã duyệt tài khoản thành công!');
+                        window.location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra khi duyệt!');
+                    }
+                } catch (err) {
+                    alert('Lỗi kết nối!');
+                }
+            }
+
+            async function updateUserStatus(id, status) {
+                const action = status === 'LOCKED' ? 'Khóa' : 'Mở khóa';
+                if (!confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
+
+                try {
+                    const response = await fetch(`/api/employees/${id}/status?status=${status}`, {
+                        method: 'PUT'
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert(`Lỗi khi ${action.toLowerCase()} tài khoản!`);
+                    }
+                } catch (err) {
+                    alert('Lỗi kết nối!');
+                }
+            }
+            function openEditModal(id) {
+                // Placeholder cho tính năng chỉnh sửa
+                alert('Tính năng chỉnh sửa nhân viên (ID: ' + id + ') đang được phát triển.');
+            }
+        </script>
+
+        <!-- Footer -->
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

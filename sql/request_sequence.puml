@@ -1,0 +1,17 @@
+@startuml
+actor "Nhân viên" as Employee
+participant "Browser (requests.html)" as Frontend
+participant "RequestController" as APIController
+participant "RequestService" as Service
+database "Database" as DB
+
+Employee -> Frontend : Nhập đơn & Nhấn "Gửi yêu cầu"
+Frontend -> APIController : POST /api/requests/employee/{empId} (JSON: CreateRequestRequest)
+APIController -> Service : createRequest(empId, req)
+Service -> DB : Lưu mới Request (Status: PENDING)
+DB --> Service : OK (Entity)
+Service --> APIController : Trả về RequestDTO
+APIController --> Frontend : HTTP 200 OK (JSON)
+Frontend -> Employee : Hiển thị "Gửi thành công"
+Frontend -> Frontend : Tải lại danh sách đơn
+@enduml

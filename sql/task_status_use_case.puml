@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+actor "Nhân viên" as Employee
+
+package "Hệ thống Quản lý Nhân sự" {
+  usecase "Cập nhật trạng thái nhiệm vụ" as UC_UpdateTaskStatus
+}
+
+Employee --> UC_UpdateTaskStatus
+@enduml

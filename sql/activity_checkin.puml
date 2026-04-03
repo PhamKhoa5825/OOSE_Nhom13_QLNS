@@ -1,0 +1,45 @@
+@startuml
+title Activity: Chấm công Check-in GPS
+start
+:Nhân viên mở trang /attendance;
+:Nhấn nút **CHECK IN**;
+:Browser lấy tọa độ GPS
+(navigator.geolocation);
+:POST /api/attendance/checkin
+{employeeId, latitude, longitude};
+
+:AttendanceServiceImpl.checkIn();
+:employeeRepo.findById(empId);
+
+if (Employee tồn tại && ACTIVE?) then (Không)
+  :Throw ResourceNotFoundException;
+  stop
+else (Có)
+endif
+
+:attendanceRepo.existsByEmployeeIdAndDate();
+
+if (Đã check-in hôm nay?) then (Có)
+  :Throw AttendanceException
+  "Đã chấm công hôm nay";
+  stop
+else (Chưa)
+endif
+
+:Lấy CompanySettings (checkInTime);
+:Tính lateMinutes = now() - checkInTime;
+
+if (lateMinutes > 0?) then (Có - Đi muộn)
+  :status = **LATE**;
+else (Không - Đúng giờ)
+  :status = **ON_TIME**;
+endif
+
+:Tạo Attendance entity
+{date, checkIn, status, lateMinutes, lat, lng};
+:attendanceRepo.save();
+:AttendanceMapper.toDTO();
+:Trả AttendanceDTO → **200 OK**;
+:Browser reload hiển thị kết quả;
+stop
+@enduml

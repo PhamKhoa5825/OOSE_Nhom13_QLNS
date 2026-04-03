@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:replace="~{layout :: sidebar('approvals')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-background-dark/50 relative">
+        <!-- Header -->
+        <header th:replace="~{layout :: header}"></header>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto p-8 space-y-6 scroll-smooth custom-scrollbar">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-card p-6 rounded-2xl flex flex-col gap-1 border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Tổng đơn chờ</p>
+                        <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">pending_actions</span>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-3xl font-black" th:text="${stats.pendingCount}">0</h3>
+                        <span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">+12%</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-sky-400 shadow-sm flex flex-col gap-1">
+                    <div class="flex justify-between items-start">
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Nghỉ phép</p>
+                        <span class="material-symbols-outlined text-sky-400 bg-sky-400/10 p-2 rounded-lg">beach_access</span>
+                    </div>
+                    <h3 class="text-3xl font-black" th:text="${stats.leaveCount}">0</h3>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-purple-400 shadow-sm flex flex-col gap-1">
+                    <div class="flex justify-between items-start">
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Tăng ca</p>
+                        <span class="material-symbols-outlined text-purple-400 bg-purple-400/10 p-2 rounded-lg">schedule</span>
+                    </div>
+                    <h3 class="text-3xl font-black" th:text="${stats.overtimeCount}">0</h3>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-amber-400 shadow-sm flex flex-col gap-1">
+                    <div class="flex justify-between items-start">
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Công tác phí</p>
+                        <span class="material-symbols-outlined text-amber-400 bg-amber-400/10 p-2 rounded-lg">payments</span>
+                    </div>
+                    <h3 class="text-3xl font-black" th:text="${stats.businessCount}">0</h3>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="glass-card p-4 rounded-xl flex flex-wrap items-center gap-4 border border-slate-200 dark:border-white/5">
+                <div class="flex-1 min-w-[300px] relative">
+                    <span class="material-symbols-outlined absolute left-3 top-3 text-slate-400">search</span>
+                    <input class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 dark:text-slate-100" placeholder="Tìm kiếm nhân viên..." type="text"/>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-200 dark:border-border-dark">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-white/5">
+                            <th class="px-6 py-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.15em]">Nhân viên</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.15em]">Loại đơn</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.15em]">Ngày gửi</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.15em] text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-border-dark">
+                        <tr th:each="req : ${requests}" class="hover:bg-primary/5 transition-colors cursor-pointer group group-hover:bg-primary/5" th:onclick="'openDrawer(' + ${req.id} + ')'">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs" th:text="${#strings.substring(req.employeeName,0,1)}">A</div>
+                                    <div>
+                                        <p class="text-sm font-bold" th:text="${req.employeeName}">Name</p>
+                                        <p class="text-[11px] text-slate-500" th:text="${req.departmentName}">Dept</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span th:text="${req.title}" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase tracking-wide">Type</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm font-medium" th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy')}">Date</p>
+                                <p class="text-[10px] text-slate-500" th:text="${#temporals.format(req.createdAt, 'HH:mm')}">Time</p>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button class="size-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-surface-dark text-slate-400 hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-lg">visibility</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests)}">
+                            <td colspan="4" class="px-6 py-20 text-center text-slate-500 italic">
+                                Không có đơn từ nào đang chờ duyệt.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Approval Drawer -->
+        <div id="approvalDrawer" class="fixed right-0 top-0 bottom-0 w-[460px] bg-white dark:bg-[#1a1c23] shadow-2xl border-l border-slate-200 dark:border-white/5 flex flex-col translate-x-full transition-transform duration-300 z-50">
+            <div class="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white">Chi tiết đơn từ</h3>
+                <button onclick="closeDrawer()" class="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-8" id="drawerContent">
+                <!-- Content will be injected by JS -->
+                <div class="flex items-center justify-center h-full">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col gap-4">
+                <textarea id="rejectionReason" class="w-full h-28 bg-white dark:bg-slate-900/80 border-slate-200 dark:border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100 shadow-inner" placeholder="Lý do từ chối (bắt buộc nếu từ chối)..."></textarea>
+                <div class="flex gap-3">
+                    <button onclick="rejectRequest()" class="flex-1 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 py-3 rounded-xl font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors">
+                        Từ chối
+                    </button>
+                    <button onclick="approveRequest()" class="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98] border border-emerald-400/20 uppercase tracking-wider">
+                        Duyệt đơn này
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    let currentRequestId = null;
+    const currentEmpId = /*[[${currentEmpId}]]*/ 0;
+
+    async function openDrawer(requestId) {
+        currentRequestId = requestId;
+        const drawer = document.getElementById('approvalDrawer');
+        const content = document.getElementById('drawerContent');
+        
+        drawer.classList.remove('translate-x-full');
+        content.innerHTML = '<div class="flex items-center justify-center h-full"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>';
+        
+        try {
+            const response = await fetch(`/api/requests/${requestId}`);
+            const data = await response.json();
+            
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">${data.employeeName.charAt(0)}</div>
+                        <div>
+                            <h4 class="text-xl font-black">${data.employeeName}</h4>
+                            <p class="text-sm text-slate-500">${data.departmentName}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 dark:bg-slate-900/80 p-5 rounded-2xl border border-slate-200 dark:border-white/5 space-y-4 shadow-sm">
+                            <div class="flex justify-between items-center border-b border-slate-200 dark:border-white/10 pb-4">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em]">Loại đơn</p>
+                                <span class="text-sm font-black text-sky-500 bg-sky-500/10 px-3 py-1 rounded-lg border border-sky-500/20 uppercase">${data.title}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em]">Ngày gửi</p>
+                                <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${new Date(data.createdAt).toLocaleDateString('vi-VN')} <span class="text-slate-400 ml-1 opacity-60">${new Date(data.createdAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</span></p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] ml-1">Mô tả / Lý do</p>
+                            <div class="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 p-5 rounded-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300 shadow-sm min-h-[100px] flex items-center justify-center text-center">
+                                <span class="italic font-medium">"${data.description || 'Không có mô tả chi tiết.'}"</span>
+                            </div>
+                        </div>
+                        ${data.fileUrl ? `
+                        <div>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Đính kèm</p>
+                            <a href="${data.fileUrl}" target="_blank" class="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-xl text-primary text-xs font-bold hover:bg-primary/10 transition-colors">
+                                <span class="material-symbols-outlined text-sm">attach_file</span>
+                                ${data.fileName || 'Xem tệp đính kèm'}
+                            </a>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            content.innerHTML = '<p class="text-rose-500 text-center py-10 font-bold">Lỗi khi tải thông tin đơn.</p>';
+        }
+    }
+
+    function closeDrawer() {
+        document.getElementById('approvalDrawer').classList.add('translate-x-full');
+        document.getElementById('rejectionReason').value = '';
+    }
+
+    async function approveRequest() {
+        if (!currentRequestId) return;
+        try {
+            const response = await fetch(`/api/requests/${currentRequestId}/review/employee/${currentEmpId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved: true })
+            });
+            if (response.ok) location.reload();
+            else alert('Lỗi khi duyệt đơn');
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function rejectRequest() {
+        if (!currentRequestId) return;
+        const reason = document.getElementById('rejectionReason').value;
+        if (!reason.trim()) {
+            alert('Vui lòng nhập lý do từ chối');
+            return;
+        }
+        try {
+            const response = await fetch(`/api/requests/${currentRequestId}/review/employee/${currentEmpId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved: false, rejectionReason: reason })
+            });
+            if (response.ok) location.reload();
+            else alert('Lỗi khi từ chối đơn');
+        } catch (error) {
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>

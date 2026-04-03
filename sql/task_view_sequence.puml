@@ -1,0 +1,17 @@
+@startuml
+actor "Nhân viên" as Employee
+participant "Browser (tasks.html)" as Frontend
+participant "TaskController" as APIController
+participant "TaskService" as Service
+database "Database" as DB
+
+Employee -> Frontend : Truy cập trang "Nhiệm vụ"
+Frontend -> APIController : GET /api/tasks/my/{empId}
+APIController -> Service : getMyTasks(empId)
+Service -> DB : Tìm kiếm Tasks được giao cho empId
+DB --> Service : Danh sách Task entities
+Service --> APIController : Danh sách TaskDTOs
+APIController --> Frontend : JSON Response
+Frontend -> Frontend : Sắp xếp và phân loại vào các cột Kanban
+Frontend -> Employee : Hiển thị bảng Kanban
+@enduml

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="dark" lang="vi">
+<head th:replace="~{layout :: head}"></head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex min-h-screen h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside th:replace="~{layout :: sidebar('tasks')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto custom-scrollbar">
+        <!-- Header -->
+        <header th:replace="~{layout :: header}"></header>
+
+        <!-- Page Content -->
+        <div class="p-8 flex flex-col gap-8">
+            <!-- Page Title & Actions -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Quản lý công việc</h2>
+                    <p class="text-slate-400 text-sm mt-1">Theo dõi và điều phối nhiệm vụ của đội ngũ nhân sự.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="flex items-center gap-2 px-4 py-2.5 bg-slate-card border border-slate-border hover:bg-slate-card/80 text-white rounded-xl text-sm font-bold transition-all">
+                        <span class="material-symbols-outlined text-xl">filter_list</span>
+                        Lọc
+                    </button>
+                    <button th:if="${isManager}" onclick="openAddTaskModal()" class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-xl">add_circle</span>
+                        Thêm nhiệm vụ mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-slate-400 text-sm font-medium">Tổng nhiệm vụ</p>
+                        <span class="material-symbols-outlined text-primary">analytics</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white leading-tight" th:text="${stats.total}">0</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <span class="text-emerald-500 text-xs font-bold">+12%</span>
+                        <span class="text-slate-500 text-xs font-medium">từ tuần trước</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-slate-400 text-sm font-medium">Đã hoàn thành</p>
+                        <span class="material-symbols-outlined text-emerald-500">check_circle</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white leading-tight" th:text="${stats.completed}">0</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <span class="text-emerald-500 text-xs font-bold">+8%</span>
+                        <span class="text-slate-500 text-xs font-medium">tỉ lệ cao</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-slate-400 text-sm font-medium">Đang xử lý</p>
+                        <span class="material-symbols-outlined text-amber-500">pending</span>
+                    </div>
+                    <p class="text-3xl font-bold text-white leading-tight" th:text="${stats.inProgress}">0</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <span class="text-amber-500 text-xs font-bold">Tăng nhẹ</span>
+                        <span class="text-slate-500 text-xs font-medium">trong hôm nay</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-red-500">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-slate-400 text-sm font-medium">Quá hạn</p>
+                        <span class="material-symbols-outlined text-red-500">warning</span>
+                    </div>
+                    <p class="text-3xl font-bold text-red-500 leading-tight" th:text="${stats.overdue}">0</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <span class="text-red-400 text-xs font-bold">Cần xử lý</span>
+                        <span class="text-slate-500 text-xs font-medium">khẩn cấp</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="flex gap-6 overflow-x-auto pb-6 custom-scrollbar">
+                <!-- Column: PENDING -->
+                <div class="flex-shrink-0 w-80 flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Cần làm</h3>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div th:each="task : ${tasks}" th:if="${task.status == 'PENDING'}" class="glass-card p-4 rounded-xl flex flex-col gap-4 border-l-4 border-l-primary/50">
+                            <div class="flex justify-between items-start">
+                                <span th:text="${task.priority}" class="px-2 py-1 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-bold uppercase">Priority</span>
+                                <span class="text-slate-500 text-[10px]" th:text="${task.deadline}">Date</span>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white" th:text="${task.title}">Title</h4>
+                                <p class="text-xs text-slate-400 mt-1 line-clamp-2" th:text="${task.description}">Description</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-border/30">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary" th:text="${#strings.substring(task.assignedToName,0,1)}">A</div>
+                                    <span class="text-[10px] text-slate-400" th:text="${task.assignedToName}">Name</span>
+                                </div>
+                                <button th:if="${task.assignedToId == currentEmpId}" th:onclick="'acceptTask(' + ${task.id} + ')'" class="text-[10px] font-bold text-primary hover:underline">Nhận việc</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: ACCEPTED -->
+                <div class="flex-shrink-0 w-80 flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Đang thực hiện</h3>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div th:each="task : ${tasks}" th:if="${task.status == 'ACCEPTED'}" class="glass-card p-4 rounded-xl flex flex-col gap-4 border-l-4 border-l-amber-500/50">
+                            <div class="flex justify-between items-start">
+                                <span th:text="${task.priority}" class="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase">Priority</span>
+                                <span class="text-slate-500 text-[10px]" th:text="${task.deadline}">Date</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white" th:text="${task.title}">Title</h4>
+                            <div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-border/30">
+                                <span class="text-[10px] text-slate-400" th:text="${task.assignedToName}">Name</span>
+                                <button th:if="${task.assignedToId == currentEmpId}" th:onclick="'completeTask(' + ${task.id} + ')'" class="text-[10px] font-bold text-emerald-500 hover:underline">Hoàn thành</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: DONE -->
+                <div class="flex-shrink-0 w-80 flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Đã hoàn thành</h3>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div th:each="task : ${tasks}" th:if="${task.status == 'DONE'}" class="glass-card p-4 rounded-xl flex flex-col gap-4 opacity-70 border-l-4 border-l-emerald-500/50">
+                            <div class="flex justify-between items-start">
+                                <span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase">Xong</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-400 line-through" th:text="${task.title}">Title</h4>
+                            <div class="flex items-center justify-end">
+                                <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Column: OVERDUE -->
+                <div class="flex-shrink-0 w-80 flex flex-col gap-4">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider text-red-500">Quá hạn</h3>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <div th:each="task : ${tasks}" th:if="${task.status == 'OVERDUE'}" class="glass-card p-4 rounded-xl flex flex-col gap-4 border-l-4 border-l-red-500">
+                            <div class="flex justify-between items-start">
+                                <span class="px-2 py-1 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-bold uppercase" th:text="${task.priority}">Priority</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white" th:text="${task.title}">Title</h4>
+                            <p class="text-[10px] text-red-400" th:text="'Hết hạn: ' + ${task.deadline}"></p>
+                            <div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-border/30">
+                                <span class="text-[10px] text-slate-400" th:text="${task.assignedToName}">Name</span>
+                                <button th:if="${task.assignedToId == currentEmpId}" th:onclick="'completeTask(' + ${task.id} + ')'" class="text-[10px] font-bold text-primary hover:underline">Gỡ lỗi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="addTaskModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-card border border-slate-border w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div class="p-6 border-b border-slate-border flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white">Thêm nhiệm vụ mới</h3>
+                    <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <form id="addTaskForm" class="p-6 flex flex-col gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Tiêu đề</label>
+                        <input type="text" name="title" required placeholder="Nhập tiêu đề nhiệm vụ..." 
+                               class="w-full bg-background-dark border border-slate-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all text-white">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Mô tả</label>
+                        <textarea name="description" rows="3" placeholder="Nhập chi tiết công việc..." 
+                                  class="w-full bg-background-dark border border-slate-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all text-white resize-none"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Ưu tiên</label>
+                            <select name="priority" class="bg-background-dark border border-slate-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all text-white">
+                                <option value="LOW">Thấp</option>
+                                <option value="MEDIUM" selected>Trung bình</option>
+                                <option value="HIGH">Cao</option>
+                                <option value="URGENT">Khẩn cấp</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Hạn chót</label>
+                            <input type="date" name="deadline" required
+                                   class="w-full bg-background-dark border border-slate-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all text-white">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Giao cho</label>
+                        <select name="assignedToId" required class="bg-background-dark border border-slate-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all text-white">
+                            <option value="">Chọn nhân viên...</option>
+                            <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.fullName}"></option>
+                        </select>
+                    </div>
+                    <!-- Hidden field for creator ID -->
+                    <input type="hidden" name="assignedById" th:value="${currentEmpId}">
+
+                    <div class="mt-4 flex gap-3">
+                        <button type="button" onclick="closeAddTaskModal()" class="flex-1 px-4 py-3 bg-slate-border/50 text-white rounded-xl text-sm font-bold hover:bg-slate-border/70 transition-all">Huỷ</button>
+                        <button type="submit" class="flex-2 px-8 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Lưu nhiệm vụ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer th:replace="~{layout :: footer}"></footer>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    const currentEmpId = /*[[${currentEmpId}]]*/ 0;
+
+    function openAddTaskModal() {
+        document.getElementById('addTaskModal').classList.remove('hidden');
+    }
+
+    function closeAddTaskModal() {
+        document.getElementById('addTaskModal').classList.add('hidden');
+    }
+
+    // Status Updates
+    async function acceptTask(taskId) {
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/accept`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ employeeId: currentEmpId })
+            });
+            if (response.ok) location.reload();
+            else alert('Lỗi khi nhận việc');
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function completeTask(taskId) {
+        try {
+            const response = await fetch(`/api/tasks/${taskId}/status?updatedById=${currentEmpId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'DONE', note: 'Hoàn thành từ web' })
+            });
+            if (response.ok) location.reload();
+            else alert('Lỗi khi cập nhật trạng thái');
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Form Handling
+    document.getElementById('addTaskForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) location.reload();
+            else alert('Lỗi khi tạo nhiệm vụ. Vui lòng kiểm tra lại thông tin.');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+</script>
+
+</body>
+</html>

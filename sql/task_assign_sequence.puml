@@ -1,0 +1,17 @@
+@startuml
+actor "Quản lý / Admin" as Manager
+participant "Browser (tasks.html)" as Frontend
+participant "TaskController" as APIController
+participant "TaskService" as Service
+database "Database" as DB
+
+Manager -> Frontend : Điền form & Nhấn "Lưu"
+Frontend -> APIController : POST /api/tasks (JSON: CreateTaskRequest)
+APIController -> Service : createTask(req)
+Service -> DB : Tạo mới Task (Status: PENDING)
+DB --> Service : OK
+Service --> APIController : Trả về TaskDTO
+APIController --> Frontend : HTTP 201 Created (JSON)
+Frontend -> Manager : Hiển thị "Giao việc thành công"
+Frontend -> Frontend : Cập nhật bảng Kanban
+@enduml

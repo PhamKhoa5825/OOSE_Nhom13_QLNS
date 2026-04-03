@@ -1,0 +1,51 @@
+@startuml
+class EmployeeViewController {
+  -employeeService: EmployeeService
+  -departmentService: DepartmentService
+  -securityService: SecurityService
+  +employees(model: Model, kw: String, deptId: Long, page: int, size: int): String
+}
+
+class EmployeeService {
+  +getByDepartment(deptId: Long, pageable: Pageable): Page<EmployeeDTO>
+  +search(kw: String, deptId: Long, pageable: Pageable): Page<EmployeeDTO>
+}
+
+class SecurityService {
+  +isAdmin(): boolean
+  +getManagerDepartmentId(): Long
+  +getCurrentUserRole(): Role
+}
+
+class EmployeeDTO {
+  -id: Long
+  -fullName: String
+  -email: String
+  -departmentName: String
+}
+
+class Employee {
+  -id: Long
+  -fullName: String
+  -department: Department
+}
+
+class Department {
+  -id: Long
+  -name: String
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+EmployeeViewController o-- EmployeeService
+EmployeeViewController o-- SecurityService
+EmployeeViewController o-- DepartmentService
+EmployeeService ..> EmployeeDTO : "Trả về"
+EmployeeService ..> Employee : "Lấy từ Repository"
+Employee o-- Department
+SecurityService ..> Role : "Sử dụng"
+@enduml

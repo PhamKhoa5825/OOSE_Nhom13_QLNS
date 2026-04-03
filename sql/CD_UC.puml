@@ -1,0 +1,116 @@
+@startuml
+!theme plain
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+}
+
+title Class Diagram — UC1: Check-in GPS
+
+package "Controller" {
+    class AttendanceController {
+        - attendanceService: AttendanceService
+        - securityService: SecurityService
+        - attendanceMapper: AttendanceMapper
+        + checkIn(req: CheckInRequest): ResponseEntity<AttendanceDTO>
+        + checkOut(req: CheckOutRequest): ResponseEntity<AttendanceDTO>
+    }
+}
+
+package "Service" {
+    interface AttendanceService {
+        + checkIn(employeeId: Long, lat: Double, lng: Double): AttendanceDTO
+        + checkOut(employeeId: Long): AttendanceDTO
+    }
+
+    class AttendanceServiceImpl {
+        - attendanceRepo: AttendanceRepository
+        - empRepo: EmployeeRepository
+        - settingsRepo: CompanySettingsRepository
+        - attendanceMapper: AttendanceMapper
+        - eventPublisher: ApplicationEventPublisher
+        --
+        - haversine(lat1, lng1, lat2, lng2): double
+        - validateLocation(lat, lng, settings): void
+        - calculateAttendanceStatus(nowTime, settings): AttendanceStatusInfo
+    }
+}
+
+package "Repository" {
+    interface AttendanceRepository <<JpaRepository>> {
+        + existsByEmployeeIdAndDate(id: Long, date: LocalDate): boolean
+        + findByEmployeeIdAndDate(id: Long, date: LocalDate): Optional<Attendance>
+    }
+    interface EmployeeRepository <<JpaRepository>> {
+        + findById(id: Long): Optional<Employee>
+    }
+    interface CompanySettingsRepository <<JpaRepository>> {
+        + findById(id: Long): Optional<CompanySettings>
+    }
+}
+
+package "Entity" {
+    class Attendance {
+        - id: Long
+        - employee: Employee
+        - date: LocalDate
+        - checkIn: LocalDateTime
+        - locationLat: Double
+        - locationLng: Double
+        - status: AttendanceStatus
+        - lateMinutes: Integer
+    }
+    class Employee {
+        - id: Long
+        - fullName: String
+        - department: Department
+    }
+    class CompanySettings {
+        - id: Long
+        - baseLat: Double
+        - baseLng: Double
+        - allowedRadius: Integer
+        - workStartTime: String
+    }
+}
+
+package "DTO & Mapper" {
+    class CheckInRequest {
+        - employeeId: Long
+        - latitude: Double
+        - longitude: Double
+    }
+    class AttendanceDTO {
+        - id: Long
+        - status: String
+        - checkIn: LocalDateTime
+    }
+    class AttendanceMapper {
+        + toDTO(attendance: Attendance): AttendanceDTO
+    }
+}
+
+package "Event" {
+    class SystemActivityEvent {
+        - action: String
+        - description: String
+        - user: User
+    }
+}
+
+' Relationships
+AttendanceController --> AttendanceService : uses
+AttendanceServiceImpl ..|> AttendanceService : implements
+AttendanceServiceImpl --> AttendanceRepository : uses
+AttendanceServiceImpl --> EmployeeRepository : uses
+AttendanceServiceImpl --> CompanySettingsRepository : uses
+AttendanceServiceImpl --> AttendanceMapper : uses
+AttendanceServiceImpl ..> SystemActivityEvent : publishes
+
+Attendance "many" -- "1" Employee : belongs to
+AttendanceMapper ..> Attendance : maps
+AttendanceMapper ..> AttendanceDTO : creates
+AttendanceController ..> CheckInRequest : consumes
+
+@enduml

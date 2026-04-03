@@ -1,0 +1,255 @@
+@startuml
+' ── ERD truyền thống (Chen notation) ──
+' Bố trí dọc, vừa 1 trang Word portrait
+top to bottom direction
+scale 0.58
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam defaultFontName "Segoe UI"
+
+skinparam entity {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+    BorderThickness 2
+    FontStyle bold
+    FontSize 12
+}
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+}
+
+skinparam diamond {
+    BackgroundColor #F5F5F5
+    BorderColor #666666
+}
+
+' ══════════════════════════════════════════
+' ENTITIES (hình chữ nhật)
+' ══════════════════════════════════════════
+
+entity "User" as User {
+  <u>id</u>
+  --
+  username
+  email
+  password_hash
+  role
+  status
+  employee_id <<FK>>
+  created_at
+}
+
+entity "Employee" as Employee {
+  <u>id</u>
+  --
+  full_name
+  email
+  phone
+  address
+  date_of_birth
+  gender
+  avatar_url
+  position
+  join_date
+  status
+  department_id <<FK>>
+}
+
+entity "Department" as Department {
+  <u>id</u>
+  --
+  name
+  description
+  manager_id <<FK>>
+  created_at
+}
+
+entity "Attendance" as Attendance {
+  <u>id</u>
+  --
+  employee_id <<FK>>
+  date
+  check_in
+  check_out
+  work_hours
+  location_lat
+  location_lng
+  status
+  late_minutes
+  created_at
+}
+
+entity "Request" as Request {
+  <u>id</u>
+  --
+  employee_id <<FK>>
+  title
+  description
+  file_url
+  file_name
+  status
+  reviewed_by <<FK>>
+  rejection_reason
+  created_at
+  updated_at
+}
+
+entity "Task" as Task {
+  <u>id</u>
+  --
+  title
+  description
+  assigned_by <<FK>>
+  assigned_to <<FK>>
+  priority
+  status
+  deadline
+  completed_at
+  attachment_url
+  created_at
+  updated_at
+}
+
+entity "TaskUpdate" as TaskUpdate {
+  <u>id</u>
+  --
+  task_id <<FK>>
+  status
+  note
+  updated_by <<FK>>
+  updated_at
+}
+
+entity "Notification" as Notification {
+  <u>id</u>
+  --
+  title
+  content
+  target_type
+  department_id <<FK>>
+  created_by <<FK>>
+  created_at
+}
+
+entity "UserNotification" as UserNotification {
+  <u>id</u>
+  --
+  user_id <<FK>>
+  notification_id <<FK>>
+  is_read
+  read_at
+}
+
+entity "ChatRoom" as ChatRoom {
+  <u>id</u>
+  --
+  name
+  type
+  department_id <<FK>>
+  created_at
+}
+
+entity "ChatRoomMember" as ChatRoomMember {
+  <u>id</u>
+  --
+  room_id <<FK>>
+  user_id <<FK>>
+  joined_at
+}
+
+entity "Message" as Message {
+  <u>id</u>
+  --
+  room_id <<FK>>
+  sender_id <<FK>>
+  message
+  message_type
+  created_at
+}
+
+entity "CompanySettings" as CompanySettings {
+  <u>id</u>
+  --
+  check_in_time
+  check_out_time
+  late_threshold_minutes
+  enable_ip_restriction
+  allowed_ips
+}
+
+entity "SystemLog" as SystemLog {
+  <u>id</u>
+  --
+  user_id <<FK>>
+  action
+  description
+  created_at
+}
+
+' ══════════════════════════════════════════
+' RELATIONSHIPS (quan hệ với bản số)
+' ══════════════════════════════════════════
+
+' User ── Employee
+User ||--|| Employee : "linked to"
+
+' Employee ── Department
+Employee }o--|| Department : "belongs to"
+
+' Department ── Employee (manager)
+Department ||--o| Employee : "managed by"
+
+' Employee ── Attendance
+Employee ||--o{ Attendance : "records"
+
+' Employee ── Request (submitter)
+Employee ||--o{ Request : "creates"
+
+' Employee ── Request (reviewer)
+Employee ||--o{ Request : "reviews"
+
+' Employee ── Task (assigns)
+Employee ||--o{ Task : "assigns"
+
+' Employee ── Task (is assigned)
+Employee ||--o{ Task : "is assigned to"
+
+' Task ── TaskUpdate
+Task ||--o{ TaskUpdate : "has updates"
+
+' Employee ── TaskUpdate
+Employee ||--o{ TaskUpdate : "updated by"
+
+' Employee ── Notification (creator)
+Employee ||--o{ Notification : "creates"
+
+' Department ── Notification
+Department ||--o{ Notification : "targets"
+
+' Notification ── UserNotification
+Notification ||--o{ UserNotification : "sends"
+
+' User ── UserNotification
+User ||--o{ UserNotification : "receives"
+
+' ChatRoom ── ChatRoomMember
+ChatRoom ||--o{ ChatRoomMember : "includes"
+
+' User ── ChatRoomMember
+User ||--o{ ChatRoomMember : "joins"
+
+' ChatRoom ── Message
+ChatRoom ||--o{ Message : "contains"
+
+' User ── Message
+User ||--o{ Message : "sends"
+
+' User ── SystemLog
+User ||--o{ SystemLog : "performs"
+
+' Department ── ChatRoom
+Department ||--o{ ChatRoom : "has"
+
+@enduml
